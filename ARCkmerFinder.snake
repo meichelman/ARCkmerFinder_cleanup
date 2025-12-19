@@ -519,12 +519,27 @@ rule make_fai:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
+rule sort_bed:
+	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed"
+	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.unsorted"
+	resources:
+		threads=40,
+		mem=250,
+		disk=250
+	run:
+		szCommand = "sort -k1,1V -k2,2n --buffer-size=250G --parallel=40 <" + str( input ) + " >" + str( output )
+		print( "about to execute: " + szCommand )
+		shell( szCommand )
+
+
 rule convert_wig_to_bed:
 	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.wig"
-	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed"
-	localrule: True
+	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.unsorted"
+	resources:
+		threads=4,
+		mem=15
 	run:
-		szCommand = "module load bedops/2.4.41 && wig2bed <" + str( input ) + " >" + str( output )
+		szCommand = "module load bedops/2.4.41 && wig2bed --do-not-sort <" + str( input ) + " >" + str( output )
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 

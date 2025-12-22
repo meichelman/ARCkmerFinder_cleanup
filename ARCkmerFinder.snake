@@ -439,11 +439,11 @@ rule addColors:
 
 
 rule groupby_kmer_counts_in_windows:
-	input: szKmerCountBedWithWindow
+	input: szBedToGroup=szKmerCountBedWithWindow, szFlag=szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.sorted_flag"
 	output: szKmerCountInWindows
 	localrule: True
 	run:
-		szCommand = "module load bedtools/2.29.2 && bedtools groupby -i {input} -g 6,7,8 -o count -c 5 >{output}"
+		szCommand = "module load bedtools/2.29.2 && bedtools groupby -i {input.szBedToGroup} -g 6,7,8 -o count -c 5 >{output}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -454,9 +454,25 @@ rule assign_kmer_counts_to_windows:
 		threads=10,
 		mem=100
 	run:
-		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools intersect -a " + szKmerCountBed + " -b " + szWindowsAcrossGenome + " -wa -wb | sort -k1,1V -k2,2n --parallel=9 --buffer-size=90G >" + szKmerCountBedWithWindow
+		# check that szKmerCountBed is sorted
+		szCommand = "sort -k1,1V -k2,2n -c " + szKmerCountBed 
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
+
+		# check that szWindowsAcrossGenome is sorted
+		szCommand = "sort -k1,1V -k2,2n -c " + szWindowsAcrossGenome
+		print( "about to execute: " + szCommand )
+		shell( szCommand )
+
+		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools intersect -sorted -a " + szKmerCountBed + " -b " + szWindowsAcrossGenome + " -wa -wb >" + szKmerCountBedWithWindow
+		print( "about to execute: " + szCommand )
+		shell( szCommand )
+
+		# check that the output file is sorted
+		szCommand = "sort -k1,1V -k2,2n -c " + szKmerCountBedWithWindow
+		print( "about to execute: " + szCommand )
+		shell( szCommand )
+
 
 
 rule make_windows_across_genome:
@@ -519,15 +535,15 @@ rule make_fai:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
-rule sort_bed:
-	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed"
+rule check_bed_sorted:
+	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.sorted_flag"
 	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.unsorted"
 	resources:
-		threads=40,
-		mem=250,
-		disk=250
+		threads=1,
+		mem=10,
+		disk=10
 	run:
-		szCommand = "sort -k1,1V -k2,2n --buffer-size=250G --parallel=40 <" + str( input ) + " >" + str( output )
+		szCommand = "sort -k1,1V -k2,2n -c <" + str( input ) + " && touch " + str( output ) 
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 

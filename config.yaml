@@ -13,7 +13,9 @@ region_size: 2000
 # this is the # of contigs to display on the right
 number_of_contigs_to_display_left_and_right:  12
 ideogram_show_triangles_at_top_this_per_cent: 2.0
-assembly: /panfs/jay/groups/7/hsiehph/gordo893/samples/PNG15b/verkko1.4.1/PNG15_ONT_HIC/assembly.haplotype1.fasta
+assembly: /projects/standard/hsiehph/gordo893/samples/PNG16/verkko1.4.1/PNG16_ONT_HIC/assembly.haplotype1.fasta
+# note:  the ideogram_title must contain no spaces
+ideogram_title: "assembly_PNG16_hap1_and_altai_no_19"
 bed_file_of_putative_introgressed_regions: fake_introgressed.bed
 use_existing_meryl_database: True
-existing_meryl_database_path: /panfs/jay/groups/7/hsiehph/gordo893/samples/PNG15b/verkko1.4.1/ARCkmerFinder_5errorsB/hap1/chag/to_find_minus_to_remove.meryl_no_5_low_freq_kmers.meryl
+existing_meryl_database_path: /projects/standard/hsiehph/shared/hsiehph_shared/short_read/ARC/filtered_meryl_databases/altai.no_19_freq_kmers.meryl

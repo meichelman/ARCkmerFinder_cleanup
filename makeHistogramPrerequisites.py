@@ -12,29 +12,29 @@ args = parser.parse_args()
 
 
 # Input to this directory:
-#       count.bed which is the 20kb regions with non-zero kmer counts
-#       assembly.haplotype1.windows.bed is the assembly broken into 20kb
+#       count.bed which is the 2kb regions with non-zero kmer counts
+#       assembly.haplotype1.windows.bed is the assembly broken into 2kb
 #             windows
 # find_0_kmer_windows.py
-#       generates 20kb regions with no kmers:  zero_windows.bed
+#       generates 2kb regions with no kmers:  zero_windows.bed
 #       cat's this with count.bed to make counts_with_0_windows.bed
-#       which has kmer counts for all 20kb regions including those with
+#       which has kmer counts for all 2kb regions including those with
 #       no matching kmers
 
 # find_introgressed.sh
 #       takes counts_with_0_windows.bed and
-#       regions_in_PNG16_20kb_windows.bed (which I believe is
-#       introgressed regions) and generates introgressed_20kb_counts.bed
+#       regions_in_PNG16_2kb_windows.bed (which I believe is
+#       introgressed regions) and generates introgressed_2kb_counts.bed
 
 #       takes counts_with_0_windows.bed and
-#       not_regions_in_PNG16_20kb_windows.bed (20kb regions with no
+#       not_regions_in_PNG16_2kb_windows.bed (2kb regions with no
 #       introgressed bases) and generates:
-#       nonintrogressed_20kb_counts.bed
+#       nonintrogressed_2kb_counts.bed
 
 #       It adds "introgressed" or "nonintrogressed" to each of these
 #       generating both.bed
 # output: --szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions is kmer counts
-#       for each 20kb region (including those with no kmers) and "introgressed" or "nonintrogressed" regions.
+#       for each 2kb region (including those with no kmers) and "introgressed" or "nonintrogressed" regions.
 
 
 sz0Windows = "zero_windows.bed"

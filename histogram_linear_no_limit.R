@@ -23,8 +23,8 @@ p <- ggplot(df, aes(x=V4, fill=V5, y = after_stat(density))) +
 p <- p + ggtitle( szTitle )
 
 
-p <- p + xlab("# of kmers found in each 20kb region")
-p <- p + ylab("# of 20kb regions with # of kmers on x axis")
+p <- p + xlab("# of kmers in 2kb window that matches some read")
+p <- p + ylab("# of 2kb regions with # of kmers on x axis, but normalized so all bars sum to 1")
 #p <- p + xlim(c(0,300) )
 #p <- p + ylim(c(0,0.03))
 

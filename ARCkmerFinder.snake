@@ -19,6 +19,7 @@ szAssemblyFai = szAssemblyBasename + ".fai"
 szKmerCountRoot = szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers"
 szKmerCountWig = szKmerCountRoot + ".wig"
 szKmerCountBed = szKmerCountRoot + ".bed"
+print( f"szKmerCountBed = {szKmerCountBed}" )
 szKmerCountBedWithWindow = szKmerCountRoot + ".bed_with_window"
 szKmerCountInWindows = szKmerCountRoot + "_in_" + str( config[ "region_size" ] ) + "_windows.bed"
 szWindowsAcrossGenomeWithZeroMatchingKmers = "zero_windows.bed"
@@ -537,7 +538,7 @@ rule make_fai:
 
 rule check_bed_sorted:
 	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.sorted_flag"
-	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.unsorted"
+	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed"
 	resources:
 		threads=1,
 		mem=10,
@@ -550,7 +551,7 @@ rule check_bed_sorted:
 
 rule convert_wig_to_bed:
 	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.wig"
-	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.unsorted"
+	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed"
 	resources:
 		threads=4,
 		mem=15

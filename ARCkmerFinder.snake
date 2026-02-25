@@ -177,9 +177,27 @@ def szGetNameOfMerylDatabaseWithLowOccurrenceKmers():
 	szTemp = re.sub( r'.meryl$', '', config["name_of_subtracted_meryl_database" ] )
 	return szTemp + "_no_" + str( max_number_of_kmers_indicating_an_error ) + "_low_freq_kmers.meryl" 
 
-
 rule all:
-	input: "kmers_not_counting_repeats_after_removing_low_occurrence_kmers.txt", szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions, szIdeogramFile, szIdeogramFileSquishHaplotypes, szHistogramLogFile, szHistogramFileLinearWithLimit, szHistogramFile 
+    input: "kmers_not_counting_repeats_after_removing_low_occurrence_kmers.txt",
+            szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions,
+            szIdeogramFile,
+            szIdeogramFileSquishHaplotypes,
+            szHistogramLogFile,
+            szHistogramFileLinearWithLimit,
+            szHistogramFile
+    localrule: True
+    run:
+        files_to_remove = [
+            "counts_in_all_windows.bed",
+            "windowsAcrossGenomeWithZeroAndNonZeroMatchingKmersJustNonIntrogressed.bed",
+            "zero_windows.bed",
+            szWindowsAcrossGenome,
+            "windows_not_including_introgressed_regions.bed",
+            szKmerCountBedWithWindow,
+            szKmerCountBed,
+            szKmerCountWig,
+        ]
+        shell("rm " + " ".join(files_to_remove))
 
 rule true_positives_etc:
      input: szWindowsAcrossGenome, szBedFileOfPutativeIntrogressedRegions, szTopNPerCentKmerCountWindows

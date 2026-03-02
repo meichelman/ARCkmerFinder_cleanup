@@ -427,7 +427,7 @@ rule find_top_N_per_cent_bed:
 	output: szTopNPerCentKmerCountWindows
 	localrule: True
 	run:
-		szCommand = "./makeBedFileWithTopNPerCent.py --fTopPercent " + str( config["ideogram_show_triangles_at_top_this_per_cent"] ) + " --szInputBedFileWithNonZero20kbRegions " + szKmerCountInWindows + " --szBedFileOfAll20kbRegions " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows;
+		szCommand = "./makeBedFileWithTopNPerCent.py --fTopPercent " + str( config["ideogram_show_triangles_at_top_this_per_cent"] ) + " --szInputBedFileWithNonZero2kbRegions " + szKmerCountInWindows + " --szBedFileOfAll2kbRegions " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows;
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -443,17 +443,17 @@ rule addColors:
 
 # szKmerCountBedWithWindow differs from szKmerCountInWindows in that
 # each kmer has a line while szKmerCountInWindows has a single line for
-# each 20kb window
+# each 2kb window
 
-# szKmerCountInWindows has a number, for each 20kb window, of kmers from
+# szKmerCountInWindows has a number, for each 2kb window, of kmers from
 # PNG16_vs_Chagyrskaya_minus_HG03516_greater_than_5.  If a kmer is found
-# more than once in the 20kb window, it is counted more than once?  Yes.
+# more than once in the 2kb window, it is counted more than once?  Yes.
 # meryl-lookup notes for each kmer, how many times it is found in the
 # reads (by the meryl database).  But that count is ignored by this
-# pipeline.  Each kmer found is assigned to a 20kb window.  bedtools
-# groupby then counts how many kmers for each 20kb are found in the
+# pipeline.  Each kmer found is assigned to a 2kb window.  bedtools
+# groupby then counts how many kmers for each 2kb are found in the
 # meryl database.  Some of these kmers may be the same.  We don't know
-# and don't care.  Just how many kmers in each 20kb region are found in
+# and don't care.  Just how many kmers in each 2kb region are found in
 # the meryl database.
 
 
@@ -479,7 +479,14 @@ rule assign_kmer_counts_to_windows:
 		shell( szCommand )
 
 		# check that szWindowsAcrossGenome is sorted
-		szCommand = "sort -k1,1V -k2,2n -c " + szWindowsAcrossGenome
+		# szCommand = "sort -k1,1V -k2,2n -c " + szWindowsAcrossGenome
+                szCommand = (
+                        "if ! sort -k1,1V -k2,2n -c \"" + szWindowsAcrossGenome + "\" 2>/dev/null; "
+                        "then echo sorting \"" + szWindowsAcrossGenome + "\"; "
+                        "tmp=$(mktemp); "
+                        "sort -k1,1V -k2,2n \"" + szWindowsAcrossGenome + "\" > \"$tmp\" && mv \"$tmp\" \"" + szWindowsAcrossGenome + "\"; "
+                        "fi"
+                )
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -558,13 +565,25 @@ rule check_bed_sorted:
 	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.sorted_flag"
 	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed"
 	resources:
-		threads=1,
-		mem=10,
-		disk=10
+            threads=1,
+            mem=10,
+            disk=10
 	run:
-		szCommand = "sort -k1,1V -k2,2n -c <" + str( input ) + " && touch " + str( output ) 
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
+            szCommand = (
+                "if ! sort -k1,1V -k2,2n -c \"" + str(input) + "\" 2>/dev/null; "
+                "then echo sorting \"" + str(input) + "\"; "
+                "tmp=$(mktemp); "
+                "sort -k1,1V -k2,2n \"" + str(input) + "\" > \"$tmp\" && mv \"$tmp\" \"" + str(input) + "\"; "
+                "fi"
+                " && touch " + str( output )
+            )
+            print( "about to execute: " + szCommand )
+            shell( szCommand )
+
+# Changed the command below to what is above for catching the sorting error and performing the sorting.
+# This way writes the sorted file to a temporary file, then moves the temp file to replace the original
+# unsorted file in order to maintain the file name for subsequent rules.
+# szCommand = "sort -k1,1V -k2,2n -c <" + str( input ) + " && touch " + str( output ) 
 
 
 rule convert_wig_to_bed:

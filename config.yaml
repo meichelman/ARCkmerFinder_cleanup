@@ -1,8 +1,6 @@
 ---
 #assembly: example/assembly2.fa
 # the following 2 files have format: (fof of short reads) (location of meryl database)
-file_of_datasets_of_kmers_to_find: datasets_to_add.fof
-file_of_datasets_of_kmers_to_remove: datasets_to_subtract.fof
 name_of_subtracted_meryl_database: to_find_minus_to_remove.meryl
 max_number_of_kmers_indicating_an_error: 5
 # I'm not sure that window_size_in_kb can be changed and the pipeline still work.
@@ -17,5 +15,4 @@ assembly: /projects/standard/hsiehph/gordo893/samples/PNG16/verkko1.4.1/PNG16_ON
 # note:  the ideogram_title must contain no spaces
 ideogram_title: "assembly_PNG16_hap1_and_altai_no_19"
 bed_file_of_putative_introgressed_regions: fake_introgressed.bed
-use_existing_meryl_database: True
 existing_meryl_database_path: /projects/standard/hsiehph/shared/hsiehph_shared/short_read/ARC/filtered_meryl_databases/altai.no_19_freq_kmers.meryl

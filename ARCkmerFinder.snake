@@ -21,7 +21,8 @@ szKmerCountWig = szKmerCountRoot + ".wig"
 szKmerCountBed = szKmerCountRoot + ".bed"
 print( f"szKmerCountBed = {szKmerCountBed}" )
 szKmerCountBedWithWindow = szKmerCountRoot + ".bed_with_window"
-szKmerCountInWindows = szKmerCountRoot + "_in_" + str( config[ "region_size" ] ) + "_windows.bed"
+nWindowSize = 2000
+szKmerCountInWindows = szKmerCountRoot + "_in_" + str( nWindowSize ) + "_windows.bed"
 szWindowsAcrossGenomeWithZeroMatchingKmers = "zero_windows.bed"
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "counts_in_all_windows.bed"
 
@@ -41,10 +42,10 @@ szSubtractedMerylDatabaseRemovedLowFreqKmersFlag = szSubtractedMerylDatabaseRemo
 # single bed line for each 20kb window (far fewer bed lines)
 
 
-szKmerCountInWindowsWithColor = szKmerCountRoot + "_in_" + str( config[ "region_size" ] ) + "_windows_with_color.bed"  
+szKmerCountInWindowsWithColor = szKmerCountRoot + "_in_" + str( nWindowSize ) + "_windows_with_color.bed"  
 
 # doesn't have counts--just windows
-szWindowsAcrossGenome = szAssemblyBasename + "_" + str( config[ "region_size" ] ) + "_windows.bed"
+szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_windows.bed"
 szTopNPerCentKmerCountWindows = "top_N_per_cent_kmer_windows.bed"
 szTopNPerCentKmerCountWindowsSwitchedHaplotypes = "top_N_per_cent_kmer_windows_switched_haplotypes.bed"
 
@@ -296,7 +297,6 @@ rule make_windows_across_genome:
 	output: szWindowsAcrossGenome
 	localrule: True
 	run:
-		nWindowSize = config["region_size"]
 		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools makewindows -g " + str( input ) + " -w " + str( nWindowSize ) + " >" + szWindowsAcrossGenome
 		print( "about to execute: " + szCommand )
 		shell( szCommand )

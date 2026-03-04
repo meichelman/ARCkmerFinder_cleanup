@@ -16,7 +16,7 @@ print( f"szAssemblyBasename = {szAssemblyBasename}" )
 szAssemblyBedFile = szAssemblyBasename + ".bed"
 szAssemblyFai = szAssemblyBasename + ".fai"
 
-szKmerCountRoot = szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers"
+szKmerCountRoot = szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] )
 szKmerCountWig = szKmerCountRoot + ".wig"
 szKmerCountBed = szKmerCountRoot + ".bed"
 print( f"szKmerCountBed = {szKmerCountBed}" )
@@ -31,7 +31,7 @@ szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndN
 
 # working here--when return put these into the rules such as count_meryl_database_after_removing_low_occurrence_kmers
 
-szSubtractedMerylDatabaseRemovedLowFreqKmers = str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.meryl"
+szSubtractedMerylDatabaseRemovedLowFreqKmers = str( config["name_of_subtracted_meryl_database" ] )
 szSubtractedMerylDatabaseRemovedLowFreqKmersFlag = szSubtractedMerylDatabaseRemovedLowFreqKmers + ".flag"
 
 
@@ -109,7 +109,7 @@ def szGetShortReadDataSetForMerylDatabase( wildcards ):
 
 def szGetNameOfMerylDatabaseWithLowOccurrenceKmers():
 	szTemp = re.sub( r'.meryl$', '', config["name_of_subtracted_meryl_database" ] )
-	return szTemp + "_no_" + str( max_number_of_kmers_indicating_an_error ) + "_low_freq_kmers.meryl" 
+	return szTemp
 
 rule all:
     input: "kmers_not_counting_repeats_after_removing_low_occurrence_kmers.txt",
@@ -248,7 +248,7 @@ rule addColors:
 
 
 rule groupby_kmer_counts_in_windows:
-	input: szBedToGroup=szKmerCountBedWithWindow, szFlag=szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.sorted_flag"
+	input: szBedToGroup=szKmerCountBedWithWindow, szFlag=szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + ".bed.sorted_flag"
 	output: szKmerCountInWindows
 	localrule: True
 	run:
@@ -352,8 +352,8 @@ rule make_fai:
 		shell( szCommand )
 
 rule check_bed_sorted:
-	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed.sorted_flag"
-	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed"
+	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + ".bed.sorted_flag"
+	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + ".bed"
 	resources:
             threads=1,
             mem=10,
@@ -377,8 +377,8 @@ rule check_bed_sorted:
 
 
 rule convert_wig_to_bed:
-	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.wig"
-	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed"
+	input: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + ".wig"
+	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + ".bed"
 	resources:
 		threads=4,
 		mem=15
@@ -391,8 +391,8 @@ rule convert_wig_to_bed:
 # but then 14 out of 260 failed because they used more than 20G of memory so
 # increasing it to 30G
 rule make_meryl_lookup:
-	input:  str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.meryl.flag"
-	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.wig"
+	input:  str( config["name_of_subtracted_meryl_database" ] ) + ".meryl.flag"
+	output: szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + ".wig"
 	resources:
 		threads=7,
 		mem=30
@@ -403,7 +403,7 @@ rule make_meryl_lookup:
 		shell( szCommand )
 
 rule count_meryl_database_after_removing_low_occurrence_kmers:
-	input: str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.meryl.flag"
+	input: str( config["name_of_subtracted_meryl_database" ] ) + ".meryl.flag"
 	output: "kmers_not_counting_repeats_after_removing_low_occurrence_kmers.txt"
 	resources:
 		#threads=40
@@ -442,6 +442,6 @@ rule assemblyFaiToBed:
 
 #rule clean:
 #	run:
-#		szCommand = "rm -rf all_meryl_databases_created_flag config["name_of_subtracted_meryl_database" ] + ".flag" str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.meryl.flag" szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.wig" str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.meryl.flag" szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + "_no_" + str( config[ "max_number_of_kmers_indicating_an_error" ]) + "_low_freq_kmers.bed" szWindowsAcrossGenome szKmerCountBedWithWindow szAssemblyBasename + "_" + config["window_size"] + ".bed" szWindowsAcrossGenome 
+#		szCommand = "rm -rf all_meryl_databases_created_flag config["name_of_subtracted_meryl_database" ] + ".flag" str( config["name_of_subtracted_meryl_database" ] ) + ".meryl.flag" szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + ".wig" str( config["name_of_subtracted_meryl_database" ] ) + ".meryl.flag" szAssemblyBasename + "_" + str( config["name_of_subtracted_meryl_database" ] ) + ".bed" szWindowsAcrossGenome szKmerCountBedWithWindow szAssemblyBasename + "_" + config["window_size"] + ".bed" szWindowsAcrossGenome 
 
 #expand( "{szPathOfMerylDatabase}.flag", szPathOfMerylDatabase = aFullPathOfMerylDatabaseOfKmersToFind), expand( "{szPathOfMerylDatabase}.flag", 

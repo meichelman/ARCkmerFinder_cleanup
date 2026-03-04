@@ -209,7 +209,7 @@ rule figureOutWhichContigsToDisplay:
 	output: szFileOfContigsToDisplayOnLeft, szFileOfContigsToDisplayOnRight
 	localrule: True
 	run:
-		szCommand = "./figureOutWhichContigsToDisplay.sh {input} " + str( config["number_of_contigs_to_display_left_and_right"] ) + " " + szFileOfContigsToDisplayOnLeft + " " + szFileOfContigsToDisplayOnRight
+		szCommand = "./figureOutWhichContigsToDisplay.sh {input} 12 " + szFileOfContigsToDisplayOnLeft + " " + szFileOfContigsToDisplayOnRight
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 

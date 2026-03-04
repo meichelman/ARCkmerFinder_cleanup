@@ -6,7 +6,6 @@ name_of_subtracted_meryl_database: to_find_minus_to_remove.meryl
 #bed_file_of_putative_introgressed_regions: /panfs/jay/groups/7/hsiehph/gordo893/samples/PNG16/verkko1.4.1/align_against_hg38/hap1_for_rustybam/introgressed_regions/regions_in_PNG16.bed
 # this is the # of contigs to display on the left
 # this is the # of contigs to display on the right
-number_of_contigs_to_display_left_and_right:  12
 assembly: /projects/standard/hsiehph/gordo893/samples/PNG16/verkko1.4.1/PNG16_ONT_HIC/assembly.haplotype1.fasta
 # note:  the ideogram_title must contain no spaces
 ideogram_title: "assembly_PNG16_hap1_and_altai_no_19"

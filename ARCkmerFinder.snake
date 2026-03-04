@@ -79,13 +79,10 @@ aFullPathOfMerylDatabaseOfKmersToRemove = []
 aBasenameOfMerylDatabaseOfKmersToFind = []
 aBasenameOfMerylDatabaseOfKmersToRemove = []
 
-
-szIdeogramTitle = str( config["ideogram_title"] )
-szIdeogramFile = szIdeogramTitle + "_ideogram.png"
+szIdeogramFile = szAssemblyBasename + "_ideogram.png"
 
 #szHistogramTitle = "_".join( aBasenameOfMerylDatabaseOfKmersToFind ) + "_minus_" + "_".join( aBasenameOfMerylDatabaseOfKmersToRemove ) 
-szHistogramTitle = str( config["ideogram_title"] )
-szHistogramFile = szHistogramTitle + "_histogram.png"
+szHistogramFile = szAssemblyBasename + "_histogram.png"
 szHistogramFileLinearWithLimit = szHistogramTitle + "_with_limit_histogram.png"
 
 

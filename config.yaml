@@ -7,7 +7,6 @@ name_of_subtracted_meryl_database: to_find_minus_to_remove.meryl
 # this is the # of contigs to display on the left
 # this is the # of contigs to display on the right
 number_of_contigs_to_display_left_and_right:  12
-ideogram_show_triangles_at_top_this_per_cent: 2.0
 assembly: /projects/standard/hsiehph/gordo893/samples/PNG16/verkko1.4.1/PNG16_ONT_HIC/assembly.haplotype1.fasta
 # note:  the ideogram_title must contain no spaces
 ideogram_title: "assembly_PNG16_hap1_and_altai_no_19"

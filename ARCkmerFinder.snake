@@ -218,7 +218,7 @@ rule find_top_N_per_cent_bed:
 	output: szTopNPerCentKmerCountWindows
 	localrule: True
 	run:
-		szCommand = "./makeBedFileWithTopNPerCent.py --fTopPercent " + str( config["ideogram_show_triangles_at_top_this_per_cent"] ) + " --szInputBedFileWithNonZero2kbRegions " + szKmerCountInWindows + " --szBedFileOfAll2kbRegions " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows;
+		szCommand = "./makeBedFileWithTopNPerCent.py --fTopPercent 1.0 --szInputBedFileWithNonZero2kbRegions " + szKmerCountInWindows + " --szBedFileOfAll2kbRegions " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows;
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 

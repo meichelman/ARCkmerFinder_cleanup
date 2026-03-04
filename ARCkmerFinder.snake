@@ -1,17 +1,15 @@
 import sys
 import os
 import re
+from pathlib import Path
 
 
 configfile: "config.yaml"
 
 
-if not os.path.exists( "log" ):
-        os.makedirs("log" )
-
-
 szBedFileOfPutativeIntrogressedRegions = "fake_introgressed.bed"
 szMerylLookupFlag = "meryl_lookup.flag"
+
 szAssemblyBasename = os.path.basename( config["assembly"] )
 print( f"szAssemblyBasename = {szAssemblyBasename}" )
 szAssemblyBedFile = szAssemblyBasename + ".bed"
@@ -20,21 +18,18 @@ szAssemblyFai = szAssemblyBasename + ".fai"
 szKmerCountWig = szAssemblyBasename + ".wig"
 szKmerCountBed = szAssemblyBasename + ".bed"
 print( f"szKmerCountBed = {szKmerCountBed}" )
-szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window"
+
 nWindowSize = 2000
+szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window"
 szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed"
-szWindowsAcrossGenomeWithZeroMatchingKmers = "zero_windows.bed"
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "counts_in_all_windows.bed"
 
-szWindowsIncludingIntrogressedRegions = "windows_including_introgressed_regions.bed"
-szWindowsNotIncludingIntrogressedRegions = "windows_not_including_introgressed_regions.bed"
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions = "windows_across_genome_with_zero_and_nonzero_matching_kmers_and_including_introgressed_and_no_introgressed_regions.bed"
 
 # the difference between szKmerCountBedWithWindow and
 # szKmerCountInWindows is that the "WithWindow" still has a bed file
 # line for each assembly base position, but the "InWindows" file has a
 # single bed line for each 20kb window (far fewer bed lines)
-
 
 szKmerCountInWindowsWithColor = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows_with_color.bed"  
 
@@ -43,7 +38,6 @@ szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_window
 szTopNPerCentKmerCountWindows = "top_N_per_cent_kmer_windows.bed"
 szTopNPerCentKmerCountWindowsSwitchedHaplotypes = "top_N_per_cent_kmer_windows_switched_haplotypes.bed"
 
-
 szFileOfContigsToDisplayOnLeft  = "contigs_to_display_on_left.txt"
 szFileOfContigsToDisplayOnRight = "contigs_to_display_on_right.txt"
 
@@ -51,52 +45,42 @@ fileLimitForHistogram = "x_limit_for_histogram.txt"
 
 szIdeogramFileSquishHaplotypes = "ideogram_squished_haplotypes.png"
 
-
-szBedFileOfTruePositives = "true_positives.bed"
-szBedFileOfFalsePositives = "false_positives.bed"
-szBedFileOfFalseNegatives = "false_negatives.bed"
-
-szBedFileOfTruePositives50 = "true_positives50.bed"
-szBedFileOfFalsePositives50 = "false_positives50.bed"
-szBedFileOfFalseNegatives50 = "false_negatives50.bed"
-
-# intermediate files for calculating the 6 files above
-szBedFileOfWindowsHavingAnyIntrogressedBases = "windows_having_any_introgressed_bases.bed"
-szBedFileOfWindowsHavingAnyIntrogressedBases50 = "windows_having_any_introgressed_bases50.bed"
-
 dictShortReadDataSetForMerylDatabasePath = {}
-dictFullPathOfMerylDatabaseForBasename = {}
-
-aFullPathOfMerylDatabaseOfKmersToFind = []
-aFullPathOfMerylDatabaseOfKmersToRemove = []
-
-aBasenameOfMerylDatabaseOfKmersToFind = []
-aBasenameOfMerylDatabaseOfKmersToRemove = []
 
 szIdeogramFile = szAssemblyBasename + "_ideogram.png"
-
-#szHistogramTitle = "_".join( aBasenameOfMerylDatabaseOfKmersToFind ) + "_minus_" + "_".join( aBasenameOfMerylDatabaseOfKmersToRemove ) 
+print( f"szIdeogramFile = {szIdeogramFile}" )
 szHistogramFile = szAssemblyBasename + "_histogram.png"
 szHistogramFileLinearWithLimit = szHistogramTitle + "_with_limit_histogram.png"
-
-
 szHistogramLogTitle = szHistogramTitle + "_logx"
 szHistogramLogFile  = szHistogramLogTitle + "_histogram.png"
 
 
-print( f"szIdeogramTitle = {szIdeogramTitle}" )
-print( f"szIdeogramFile = {szIdeogramFile}" )
+def is_directly_in_cwd(file_path):
+    """
+    Checks if the file_path is located directly in the Current Working Directory (CWD),
+    excluding files in subdirectories.
+    
+    Args:
+        file_path (str): The path to check (should represent a file).
+        
+    Returns:
+        bool: True if the file is an immediate member of the CWD.
+    """
 
+    full_path = os.path.abspath(file_path)
 
-def szGetFullPathMerylDatabase( wildcards ):
-	return dictFullPathOfMerylDatabaseForBasename[ str( wildcards.szBasenameOfMerylDatabase ) ]
+    file_dir = os.path.dirname(full_path)
 
+    print( file_dir )
 
-def szGetShortReadDataSetForMerylDatabase( wildcards ):
-	szPathOfMerylDatabase2 = str( wildcards.szPathOfMerylDatabase ) + ".meryl"
-	if ( szPathOfMerylDatabase2 not in dictShortReadDataSetForMerylDatabasePath ):
-		sys.exit( "could not find " + szPathOfMerylDatabase2 + " in dictShortReadDataSetForMerylDatabasePath" )
-	return dictShortReadDataSetForMerylDatabasePath[ szPathOfMerylDatabase2 ]
+    current_dir = os.getcwd()
+
+    if ( file_dir == current_dir):
+       print( "the path is in the cwd" )
+       return True
+    else:
+       print("the path is not in the cwd" )
+       return False
 
 
 rule all:
@@ -131,6 +115,7 @@ rule makeHistogram_logx:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
+
 rule makeHistogram_linear_with_limit:
 	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
 	output: szHistogramFileLinearWithLimit
@@ -143,6 +128,7 @@ rule makeHistogram_linear_with_limit:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
+
 rule makeHistogram_linear_no_limit:
 	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
 	output: szHistogramFile
@@ -151,6 +137,7 @@ rule makeHistogram_linear_no_limit:
 		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_linear_no_limit.R " + szHistogramFile + " " + szHistogramTitle + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
+
 
 rule makeHistogramPrerequisites:
 	input: szWindowsAcrossGenome, szKmerCountInWindows, szBedFileOfPutativeIntrogressedRegions
@@ -182,6 +169,7 @@ rule topNPerCentSwitchHaplotypes:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
+
 rule makeIdeogram:
 	input: bed = szKmerCountInWindowsWithColor, left_contigs=szFileOfContigsToDisplayOnLeft, right_contigs=szFileOfContigsToDisplayOnRight, assemblyBedFile=szAssemblyBedFile, topNPerCent=szTopNPerCentKmerCountWindows
 	output: szIdeogramFile
@@ -190,6 +178,7 @@ rule makeIdeogram:
 		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript make_ideogram6_rectangles.R {output} {input.bed} " + szIdeogramTitle + " " + szTopNPerCentKmerCountWindows + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBedFile + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
+
 
 rule figureOutWhichContigsToDisplay:
 	input: szAssemblyFai
@@ -200,6 +189,7 @@ rule figureOutWhichContigsToDisplay:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
+
 rule find_top_N_per_cent_bed:
 	input: szKmerCountInWindows, szWindowsAcrossGenome
 	output: szTopNPerCentKmerCountWindows
@@ -209,6 +199,7 @@ rule find_top_N_per_cent_bed:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
+
 rule addColors:
 	input: ccount=szKmerCountInWindows, lleft=szFileOfContigsToDisplayOnLeft, rright=szFileOfContigsToDisplayOnRight
 	output: szKmerCountInWindowsWithColor
@@ -217,7 +208,6 @@ rule addColors:
 		szCommand = f"cat {{input.ccount}} | ./addColors3.py --szContigsToDisplayOnLeft {szFileOfContigsToDisplayOnLeft} --szContigsToDisplayOnRight {szFileOfContigsToDisplayOnRight} >{{output}}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
-
 
 # szKmerCountBedWithWindow differs from szKmerCountInWindows in that
 # each kmer has a line while szKmerCountInWindows has a single line for
@@ -243,6 +233,7 @@ rule groupby_kmer_counts_in_windows:
 		szCommand = "module load bedtools/2.29.2 && bedtools groupby -i {input.szBedToGroup} -g 6,7,8 -o count -c 5 >{output}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
+
 
 rule assign_kmer_counts_to_windows:
 	input: szWindowsAcrossGenome, szKmerCountBed
@@ -278,7 +269,6 @@ rule assign_kmer_counts_to_windows:
 		shell( szCommand )
 
 
-
 rule make_windows_across_genome:
 	input: szAssemblyFai
 	output: szWindowsAcrossGenome
@@ -287,39 +277,6 @@ rule make_windows_across_genome:
 		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools makewindows -g " + str( input ) + " -w " + str( nWindowSize ) + " >" + szWindowsAcrossGenome
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
-
-from pathlib import Path
-
-from pathlib import Path
-
-def is_directly_in_cwd(file_path):
-    """
-    Checks if the file_path is located directly in the Current Working Directory (CWD),
-    excluding files in subdirectories.
-    
-    Args:
-        file_path (str): The path to check (should represent a file).
-        
-    Returns:
-        bool: True if the file is an immediate member of the CWD.
-    """
-
-    full_path = os.path.abspath(file_path)
-
-    file_dir = os.path.dirname(full_path)
-
-    print( file_dir )
-
-    current_dir = os.getcwd()
-
-    if ( file_dir == current_dir):
-       print( "the path is in the cwd" )
-       return True
-    else:
-       print("the path is not in the cwd" )
-       return False
-
-
 
 
 rule make_fai:
@@ -337,6 +294,7 @@ rule make_fai:
 		szCommand = f"module load samtools/1.20 && samtools faidx {szAssemblyBasename}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
+
 
 rule check_bed_sorted:
 	output: szAssemblyBasename + ".bed.sorted_flag"
@@ -374,6 +332,7 @@ rule convert_wig_to_bed:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
+
 # I saw this using 600% cpu and 12G memory so decreasing it
 # but then 14 out of 260 failed because they used more than 20G of memory so
 # increasing it to 30G
@@ -388,6 +347,7 @@ rule make_meryl_lookup:
 		szCommand = "module load meryl/1.4.1 && meryl-lookup -wig-count -output " + str( output ) + " -sequence " + config["assembly"] + " -mers " +  szMerylDatabase 
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
+
 
 rule count_meryl_database_after_removing_low_occurrence_kmers:
 	input: szMerylLookupFlag

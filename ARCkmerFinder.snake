@@ -8,18 +8,20 @@ configfile: "config.yaml"
 
 
 szBedFileOfPutativeIntrogressedRegions = "fake_introgressed.bed"
-szMerylLookupFlag = "meryl_lookup.flag"
+nWindowSize = 2000
 
 szAssemblyBasename = os.path.basename( config["assembly"] )
 print( f"szAssemblyBasename = {szAssemblyBasename}" )
-szAssemblyBedFile = szAssemblyBasename + ".bed"
-szAssemblyFai = szAssemblyBasename + ".fai"
+szAssemblyFai = szAssemblyBasename + ".fai" # make_fai
+szAssemblyBed = szAssemblyBasename + ".bed" # assemblyFaiToBed
 
-szKmerCountWig = szAssemblyBasename + ".wig"
-szKmerCountBed = szAssemblyBasename + ".bed"
+# doesn't have counts--just windows
+szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_windows.bed" # make_windows_across_genome
+
+szKmerCountWig = szAssemblyBasename + ".wig" # make_meryl_lookup
+szKmerCountBed = szKmerCountWig + ".bed" # convert_wig_to_bed
 print( f"szKmerCountBed = {szKmerCountBed}" )
 
-nWindowSize = 2000
 szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window"
 szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed"
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "counts_in_all_windows.bed"
@@ -33,8 +35,7 @@ szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndN
 
 szKmerCountInWindowsWithColor = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows_with_color.bed"  
 
-# doesn't have counts--just windows
-szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_windows.bed"
+
 szTopNPerCentKmerCountWindows = "top_N_per_cent_kmer_windows.bed"
 szTopNPerCentKmerCountWindowsSwitchedHaplotypes = "top_N_per_cent_kmer_windows_switched_haplotypes.bed"
 
@@ -50,8 +51,8 @@ dictShortReadDataSetForMerylDatabasePath = {}
 szIdeogramFile = szAssemblyBasename + "_ideogram.png"
 print( f"szIdeogramFile = {szIdeogramFile}" )
 szHistogramFile = szAssemblyBasename + "_histogram.png"
-szHistogramFileLinearWithLimit = szHistogramTitle + "_with_limit_histogram.png"
-szHistogramLogTitle = szHistogramTitle + "_logx"
+szHistogramFileLinearWithLimit = szAssemblyBasename + "_with_limit_histogram.png"
+szHistogramLogTitle = szAssemblyBasename + "_logx"
 szHistogramLogFile  = szHistogramLogTitle + "_histogram.png"
 
 
@@ -226,7 +227,7 @@ rule addColors:
 
 
 rule groupby_kmer_counts_in_windows:
-	input: szBedToGroup=szKmerCountBedWithWindow
+	input: szBedToGroup=szKmerCountBedWithWindow, szKmerCountBed + ".sorted_flag"
 	output: szKmerCountInWindows
 	localrule: True
 	run:
@@ -297,8 +298,8 @@ rule make_fai:
 
 
 rule check_bed_sorted:
-	output: szAssemblyBasename + ".bed.sorted_flag"
-	input: szAssemblyBasename + ".bed"
+	output: szKmerCountBed + ".sorted_flag"
+	input: szKmerCountBed
 	resources:
             threads=1,
             mem=10,
@@ -322,8 +323,8 @@ rule check_bed_sorted:
 
 
 rule convert_wig_to_bed:
-	input: szAssemblyBasename + ".wig"
-	output: szAssemblyBasename + ".bed"
+	input: szKmerCountWig
+	output: szKmerCountBed
 	resources:
 		threads=4,
 		mem=15
@@ -337,8 +338,7 @@ rule convert_wig_to_bed:
 # but then 14 out of 260 failed because they used more than 20G of memory so
 # increasing it to 30G
 rule make_meryl_lookup:
-	input:  szMerylLookupFlag
-	output: szAssemblyBasename + ".wig"
+	output: szKmerCountWig
 	resources:
 		threads=7,
 		mem=30
@@ -350,7 +350,6 @@ rule make_meryl_lookup:
 
 
 rule count_meryl_database_after_removing_low_occurrence_kmers:
-	input: szMerylLookupFlag
 	output: "kmers_not_counting_repeats_after_removing_low_occurrence_kmers.txt"
 	resources:
 		#threads=40

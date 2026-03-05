@@ -22,10 +22,11 @@ szKmerCountWig = szAssemblyBasename + ".wig" # make_meryl_lookup
 szKmerCountBed = szKmerCountWig + ".bed" # convert_wig_to_bed
 print( f"szKmerCountBed = {szKmerCountBed}" )
 
-szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window"
-szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed"
+szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window" # assign_kmer_counts_to_windows
+szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed" # groupby_kmer_counts_in_windows
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "counts_in_all_windows.bed"
 
+# makeHistogramPrerequisites
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions = "windows_across_genome_with_zero_and_nonzero_matching_kmers_and_including_introgressed_and_no_introgressed_regions.bed"
 
 # the difference between szKmerCountBedWithWindow and
@@ -227,7 +228,7 @@ rule addColors:
 
 
 rule groupby_kmer_counts_in_windows:
-	input: szBedToGroup=szKmerCountBedWithWindow, szKmerCountBed + ".sorted_flag"
+	input: szBedToGroup=szKmerCountBedWithWindow, sorted_flag=szKmerCountBed + ".sorted_flag"
 	output: szKmerCountInWindows
 	localrule: True
 	run:
@@ -244,19 +245,26 @@ rule assign_kmer_counts_to_windows:
 		mem=100
 	run:
 		# check that szKmerCountBed is sorted
-		szCommand = "sort -k1,1V -k2,2n -c " + szKmerCountBed 
+		# szCommand = "sort -k1,1V -k2,2n -c " + szKmerCountBed 
+		szCommand = (
+				"if ! sort -k1,1V -k2,2n -c \"" + szKmerCountBed + "\" 2>/dev/null; "
+				"then echo sorting \"" + szKmerCountBed + "\"; "
+				"tmp=$(mktemp); "
+				"sort -k1,1V -k2,2n \"" + szKmerCountBed + "\" > \"$tmp\" && mv \"$tmp\" \"" + szKmerCountBed + "\"; "
+				"fi"
+		)
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 		# check that szWindowsAcrossGenome is sorted
 		# szCommand = "sort -k1,1V -k2,2n -c " + szWindowsAcrossGenome
-                szCommand = (
-                        "if ! sort -k1,1V -k2,2n -c \"" + szWindowsAcrossGenome + "\" 2>/dev/null; "
-                        "then echo sorting \"" + szWindowsAcrossGenome + "\"; "
-                        "tmp=$(mktemp); "
-                        "sort -k1,1V -k2,2n \"" + szWindowsAcrossGenome + "\" > \"$tmp\" && mv \"$tmp\" \"" + szWindowsAcrossGenome + "\"; "
-                        "fi"
-                )
+		szCommand = (
+				"if ! sort -k1,1V -k2,2n -c \"" + szWindowsAcrossGenome + "\" 2>/dev/null; "
+				"then echo sorting \"" + szWindowsAcrossGenome + "\"; "
+				"tmp=$(mktemp); "
+				"sort -k1,1V -k2,2n \"" + szWindowsAcrossGenome + "\" > \"$tmp\" && mv \"$tmp\" \"" + szWindowsAcrossGenome + "\"; "
+				"fi"
+		)
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 

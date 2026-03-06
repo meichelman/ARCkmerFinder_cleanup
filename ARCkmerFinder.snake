@@ -9,48 +9,42 @@ configfile: "config.yaml"
 
 szBedFileOfPutativeIntrogressedRegions = "fake_introgressed.bed"
 nWindowSize = 2000
-
 szAssemblyBasename = os.path.basename( config["assembly"] )
 print( f"szAssemblyBasename = {szAssemblyBasename}" )
+
+# Organizing windows
 szAssemblyFai = szAssemblyBasename + ".fai" # make_fai
 szAssemblyBed = szAssemblyBasename + ".bed" # assemblyFaiToBed
+szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_windows.bed" # make_windows_across_genome, doesn't have counts--just windows
 
-# doesn't have counts--just windows
-szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_windows.bed" # make_windows_across_genome
-
+# Counting k-mers
 szKmerCountWig = szAssemblyBasename + ".wig" # make_meryl_lookup
 szKmerCountBed = szKmerCountWig + ".bed" # convert_wig_to_bed
-print( f"szKmerCountBed = {szKmerCountBed}" )
+szKmerCountBedSortedFlag = szKmerCountBed + ".sorted_flag" # check_bed_sorted
 
+# Organizing k-mer counts in windows
 szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window" # assign_kmer_counts_to_windows
 szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed" # groupby_kmer_counts_in_windows
-szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "counts_in_all_windows.bed"
-
-# makeHistogramPrerequisites
-szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions = "windows_across_genome_with_zero_and_nonzero_matching_kmers_and_including_introgressed_and_no_introgressed_regions.bed"
+szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "counts_in_all_windows.bed" # makeHistogramPrerequisites
+szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions = "windows_across_genome_with_zero_and_nonzero_matching_kmers_and_including_introgressed_and_no_introgressed_regions.bed" # makeHistogramPrerequisites
 
 # the difference between szKmerCountBedWithWindow and
 # szKmerCountInWindows is that the "WithWindow" still has a bed file
 # line for each assembly base position, but the "InWindows" file has a
 # single bed line for each 20kb window (far fewer bed lines)
 
+# Plotting
 szKmerCountInWindowsWithColor = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows_with_color.bed"  
-
-
 szTopNPerCentKmerCountWindows = "top_N_per_cent_kmer_windows.bed"
 szTopNPerCentKmerCountWindowsSwitchedHaplotypes = "top_N_per_cent_kmer_windows_switched_haplotypes.bed"
-
 szFileOfContigsToDisplayOnLeft  = "contigs_to_display_on_left.txt"
 szFileOfContigsToDisplayOnRight = "contigs_to_display_on_right.txt"
-
 fileLimitForHistogram = "x_limit_for_histogram.txt"
-
 szIdeogramFileSquishHaplotypes = "ideogram_squished_haplotypes.png"
 
 dictShortReadDataSetForMerylDatabasePath = {}
 
 szIdeogramFile = szAssemblyBasename + "_ideogram.png"
-print( f"szIdeogramFile = {szIdeogramFile}" )
 szHistogramFile = szAssemblyBasename + "_histogram.png"
 szHistogramFileLinearWithLimit = szAssemblyBasename + "_with_limit_histogram.png"
 szHistogramLogTitle = szAssemblyBasename + "_logx"
@@ -86,9 +80,9 @@ def is_directly_in_cwd(file_path):
 
 
 rule all:
-    input: "kmers_not_counting_repeats_after_removing_low_occurrence_kmers.txt",
-            szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions,
-            szIdeogramFile,
+    input: 
+			szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions,
+			szIdeogramFile,
             szIdeogramFileSquishHaplotypes,
             szHistogramLogFile,
             szHistogramFileLinearWithLimit,
@@ -96,14 +90,18 @@ rule all:
     localrule: True
     run:
         files_to_remove = [
-            "counts_in_all_windows.bed",
+			szAssemblyFai,
+			szAssemblyBed,
+			szWindowsAcrossGenome,
+			szKmerCountWig,
+			szKmerCountBed,
+			szKmerCountBedSortedFlag,
+			szKmerCountBedWithWindow,
+			szKmerCountInWindows,
+			szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers,
             "windowsAcrossGenomeWithZeroAndNonZeroMatchingKmersJustNonIntrogressed.bed",
             "zero_windows.bed",
-            szWindowsAcrossGenome,
             "windows_not_including_introgressed_regions.bed",
-            szKmerCountBedWithWindow,
-            szKmerCountBed,
-            szKmerCountWig,
         ]
         shell("rm " + " ".join(files_to_remove))
 
@@ -211,6 +209,7 @@ rule addColors:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
+
 # szKmerCountBedWithWindow differs from szKmerCountInWindows in that
 # each kmer has a line while szKmerCountInWindows has a single line for
 # each 2kb window
@@ -228,17 +227,17 @@ rule addColors:
 
 
 rule groupby_kmer_counts_in_windows:
-	input: szBedToGroup=szKmerCountBedWithWindow, sorted_flag=szKmerCountBed + ".sorted_flag"
+	input: szKmerCountBedWithWindow
 	output: szKmerCountInWindows
 	localrule: True
 	run:
-		szCommand = "module load bedtools/2.29.2 && bedtools groupby -i {input.szBedToGroup} -g 6,7,8 -o count -c 5 >{output}"
+		szCommand = "module load bedtools/2.29.2 && bedtools groupby -i {input} -g 6,7,8 -o count -c 5 >{output}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
 rule assign_kmer_counts_to_windows:
-	input: szWindowsAcrossGenome, szKmerCountBed
+	input: szWindowsAcrossGenome, szKmerCountBed, szKmerCountBedSortedFlag
 	output: szKmerCountBedWithWindow
 	resources:
 		threads=10,
@@ -246,27 +245,27 @@ rule assign_kmer_counts_to_windows:
 	run:
 		# check that szKmerCountBed is sorted
 		# szCommand = "sort -k1,1V -k2,2n -c " + szKmerCountBed 
-		szCommand = (
-				"if ! sort -k1,1V -k2,2n -c \"" + szKmerCountBed + "\" 2>/dev/null; "
-				"then echo sorting \"" + szKmerCountBed + "\"; "
-				"tmp=$(mktemp); "
-				"sort -k1,1V -k2,2n \"" + szKmerCountBed + "\" > \"$tmp\" && mv \"$tmp\" \"" + szKmerCountBed + "\"; "
-				"fi"
-		)
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
+		# szCommand = (
+		# 		"if ! sort -k1,1V -k2,2n -c \"" + szKmerCountBed + "\" 2>/dev/null; "
+		# 		"then echo sorting \"" + szKmerCountBed + "\"; "
+		# 		"tmp=$(mktemp); "
+		# 		"sort -k1,1V -k2,2n \"" + szKmerCountBed + "\" > \"$tmp\" && mv \"$tmp\" \"" + szKmerCountBed + "\"; "
+		# 		"fi"
+		# )
+		# print( "about to execute: " + szCommand )
+		# shell( szCommand )
 
 		# check that szWindowsAcrossGenome is sorted
 		# szCommand = "sort -k1,1V -k2,2n -c " + szWindowsAcrossGenome
-		szCommand = (
-				"if ! sort -k1,1V -k2,2n -c \"" + szWindowsAcrossGenome + "\" 2>/dev/null; "
-				"then echo sorting \"" + szWindowsAcrossGenome + "\"; "
-				"tmp=$(mktemp); "
-				"sort -k1,1V -k2,2n \"" + szWindowsAcrossGenome + "\" > \"$tmp\" && mv \"$tmp\" \"" + szWindowsAcrossGenome + "\"; "
-				"fi"
-		)
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
+		# szCommand = (
+		# 		"if ! sort -k1,1V -k2,2n -c \"" + szWindowsAcrossGenome + "\" 2>/dev/null; "
+		# 		"then echo sorting \"" + szWindowsAcrossGenome + "\"; "
+		# 		"tmp=$(mktemp); "
+		# 		"sort -k1,1V -k2,2n \"" + szWindowsAcrossGenome + "\" > \"$tmp\" && mv \"$tmp\" \"" + szWindowsAcrossGenome + "\"; "
+		# 		"fi"
+		# )
+		# print( "about to execute: " + szCommand )
+		# shell( szCommand )
 
 		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools intersect -sorted -a " + szKmerCountBed + " -b " + szWindowsAcrossGenome + " -wa -wb >" + szKmerCountBedWithWindow
 		print( "about to execute: " + szCommand )
@@ -278,36 +277,13 @@ rule assign_kmer_counts_to_windows:
 		shell( szCommand )
 
 
-rule make_windows_across_genome:
-	input: szAssemblyFai
-	output: szWindowsAcrossGenome
-	localrule: True
-	run:
-		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools makewindows -g " + str( input ) + " -w " + str( nWindowSize ) + " >" + szWindowsAcrossGenome
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
-
-
-rule make_fai:
-	input: config["assembly"]
-	output: szAssemblyFai
-	localrule: True
-	run:
-		bIsInCWD = is_directly_in_cwd( str(input ) )
-		print( "is in current directory ", bIsInCWD )
-		if ( not is_directly_in_cwd( str(input ) ) ):
-			szCommand = f"ln -sf {input}"
-			print( "about to execute: " + szCommand )
-			shell( szCommand )
-                        
-		szCommand = f"module load samtools/1.20 && samtools faidx {szAssemblyBasename}"
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
-
-
+# Changed the command below to catching the sorting error and performing the sorting.
+# szCommand = "sort -k1,1V -k2,2n -c <" + str( input ) + " && touch " + str( output ) 
+# This way writes the sorted file to a temporary file, then moves the temp file to replace the original
+# unsorted file in order to maintain the file name for subsequent rules.
 rule check_bed_sorted:
-	output: szKmerCountBed + ".sorted_flag"
 	input: szKmerCountBed
+	output: szKmerCountBed, szKmerCountBedSortedFlag
 	resources:
             threads=1,
             mem=10,
@@ -323,11 +299,6 @@ rule check_bed_sorted:
             )
             print( "about to execute: " + szCommand )
             shell( szCommand )
-
-# Changed the command below to what is above for catching the sorting error and performing the sorting.
-# This way writes the sorted file to a temporary file, then moves the temp file to replace the original
-# unsorted file in order to maintain the file name for subsequent rules.
-# szCommand = "sort -k1,1V -k2,2n -c <" + str( input ) + " && touch " + str( output ) 
 
 
 rule convert_wig_to_bed:
@@ -357,29 +328,22 @@ rule make_meryl_lookup:
 		shell( szCommand )
 
 
-rule count_meryl_database_after_removing_low_occurrence_kmers:
-	output: "kmers_not_counting_repeats_after_removing_low_occurrence_kmers.txt"
-	resources:
-		#threads=40
-		# meryl print did not speed up (seemed to even slow down) when using more threads
-		threads=1
+rule make_windows_across_genome:
+	input: szAssemblyFai
+	output: szWindowsAcrossGenome
+	localrule: True
 	run:
-		# changed 2025.08.22 DG since szMerylDatabase pointed to non-existing meryl database and meryl print created about 60 empty files
-		#szMerylDatabase = re.sub( r'.flag$', '', str( input ) )
-
-		szMerylDatabase = config["existing_meryl_database_path" ]
-		
-		szTempOutput = str( output ) + ".tmp"
-
-		szCommand = "module load meryl/1.4.1 && meryl print " + szMerylDatabase + " | wc -l >" + szTempOutput
+		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools makewindows -g " + str( input ) + " -w " + str( nWindowSize ) + " >" + szWindowsAcrossGenome
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
-		szCommand = "cat " + szTempOutput + " | awk '{{printf \"%\\47i\\n\", $1 }}' >> " + szTempOutput
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
-
-		szCommand = "mv " + szTempOutput + " " + str( output )
+		szCommand = (
+				"if ! sort -k1,1V -k2,2n -c \"" + szWindowsAcrossGenome + "\" 2>/dev/null; "
+				"then echo sorting \"" + szWindowsAcrossGenome + "\"; "
+				"tmp=$(mktemp); "
+				"sort -k1,1V -k2,2n \"" + szWindowsAcrossGenome + "\" > \"$tmp\" && mv \"$tmp\" \"" + szWindowsAcrossGenome + "\"; "
+				"fi"
+		)
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -392,6 +356,50 @@ rule assemblyFaiToBed:
 		szCommand = "cat {input} | awk '{{print $1\"\t1\t\"$2}}' >{output}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
+
+
+rule make_fai:
+	input: config["assembly"]
+	output: szAssemblyFai
+	localrule: True
+	run:
+		bIsInCWD = is_directly_in_cwd( str(input ) )
+		print( "is in current directory ", bIsInCWD )
+		if ( not is_directly_in_cwd( str(input ) ) ):
+			szCommand = f"ln -sf {input}"
+			print( "about to execute: " + szCommand )
+			shell( szCommand )
+                        
+		szCommand = f"module load samtools/1.20 && samtools faidx {szAssemblyBasename}"
+		print( "about to execute: " + szCommand )
+		shell( szCommand )
+
+
+# rule count_meryl_database_after_removing_low_occurrence_kmers:
+# 	output: "kmers_not_counting_repeats_after_removing_low_occurrence_kmers.txt"
+# 	resources:
+# 		#threads=40
+# 		# meryl print did not speed up (seemed to even slow down) when using more threads
+# 		threads=1
+# 	run:
+# 		# changed 2025.08.22 DG since szMerylDatabase pointed to non-existing meryl database and meryl print created about 60 empty files
+# 		#szMerylDatabase = re.sub( r'.flag$', '', str( input ) )
+
+# 		szMerylDatabase = config["existing_meryl_database_path" ]
+		
+# 		szTempOutput = str( output ) + ".tmp"
+
+# 		szCommand = "module load meryl/1.4.1 && meryl print " + szMerylDatabase + " | wc -l >" + szTempOutput
+# 		print( "about to execute: " + szCommand )
+# 		shell( szCommand )
+
+# 		szCommand = "cat " + szTempOutput + " | awk '{{printf \"%\\47i\\n\", $1 }}' >> " + szTempOutput
+# 		print( "about to execute: " + szCommand )
+# 		shell( szCommand )
+
+# 		szCommand = "mv " + szTempOutput + " " + str( output )
+# 		print( "about to execute: " + szCommand )
+# 		shell( szCommand )
 
 
 #rule clean:

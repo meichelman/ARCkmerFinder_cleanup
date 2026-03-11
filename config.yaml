@@ -1,21 +1,3 @@
 ---
-#assembly: example/assembly2.fa
-# the following 2 files have format: (fof of short reads) (location of meryl database)
-file_of_datasets_of_kmers_to_find: datasets_to_add.fof
-file_of_datasets_of_kmers_to_remove: datasets_to_subtract.fof
-name_of_subtracted_meryl_database: to_find_minus_to_remove.meryl
-max_number_of_kmers_indicating_an_error: 5
-# I'm not sure that window_size_in_kb can be changed and the pipeline still work.
-# There might be some place in the code where 20kb is assumed.
-region_size: 2000
-#bed_file_of_putative_introgressed_regions: /panfs/jay/groups/7/hsiehph/gordo893/samples/PNG16/verkko1.4.1/align_against_hg38/hap1_for_rustybam/introgressed_regions/regions_in_PNG16.bed
-# this is the # of contigs to display on the left
-# this is the # of contigs to display on the right
-number_of_contigs_to_display_left_and_right:  12
-ideogram_show_triangles_at_top_this_per_cent: 2.0
-assembly: /projects/standard/hsiehph/gordo893/samples/PNG16/verkko1.4.1/PNG16_ONT_HIC/assembly.haplotype1.fasta
-# note:  the ideogram_title must contain no spaces
-ideogram_title: "assembly_PNG16_hap1_and_altai_no_19"
-bed_file_of_putative_introgressed_regions: fake_introgressed.bed
-use_existing_meryl_database: True
-existing_meryl_database_path: /projects/standard/hsiehph/shared/hsiehph_shared/short_read/ARC/filtered_meryl_databases/altai.no_19_freq_kmers.meryl
+assembly: /path/to/assembly.fasta
+existing_meryl_database_path: /path/to/database.meryl

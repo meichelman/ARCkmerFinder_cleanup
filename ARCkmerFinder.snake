@@ -52,44 +52,44 @@ szHistogramLogFile  = szHistogramLogTitle + "_histogram.png"
 
 
 def is_directly_in_cwd(file_path):
-    """
-    Checks if the file_path is located directly in the Current Working Directory (CWD),
-    excluding files in subdirectories.
-    
-    Args:
-        file_path (str): The path to check (should represent a file).
-        
-    Returns:
-        bool: True if the file is an immediate member of the CWD.
-    """
+	"""
+	Checks if the file_path is located directly in the Current Working Directory (CWD),
+	excluding files in subdirectories.
+	
+	Args:
+		file_path (str): The path to check (should represent a file).
+					
+	Returns:
+		bool: True if the file is an immediate member of the CWD.
+	"""
 
-    full_path = os.path.abspath(file_path)
+	full_path = os.path.abspath(file_path)
 
-    file_dir = os.path.dirname(full_path)
+	file_dir = os.path.dirname(full_path)
 
-    print( file_dir )
+	print( file_dir )
 
-    current_dir = os.getcwd()
+	current_dir = os.getcwd()
 
-    if ( file_dir == current_dir):
-       print( "the path is in the cwd" )
-       return True
-    else:
-       print("the path is not in the cwd" )
-       return False
+	if ( file_dir == current_dir):
+		print( "the path is in the cwd" )
+		return True
+	else:
+		print("the path is not in the cwd" )
+		return False
 
 
 rule all:
-    input: 
-			szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions,
-			szIdeogramFile,
-            szIdeogramFileSquishHaplotypes,
-            szHistogramLogFile,
-            szHistogramFileLinearWithLimit,
-            szHistogramFile
-    localrule: True
-    run:
-        files_to_remove = [
+	input:
+		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions,
+		szIdeogramFile,
+		szIdeogramFileSquishHaplotypes,
+		szHistogramLogFile,
+		szHistogramFileLinearWithLimit,
+		szHistogramFile
+	localrule: True
+	run:
+		files_to_remove = [
 			szAssemblyFai,
 			szAssemblyBed,
 			szWindowsAcrossGenome,
@@ -99,11 +99,11 @@ rule all:
 			szKmerCountBedWithWindow,
 			szKmerCountInWindows,
 			szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers,
-            "windowsAcrossGenomeWithZeroAndNonZeroMatchingKmersJustNonIntrogressed.bed",
-            "zero_windows.bed",
-            "windows_not_including_introgressed_regions.bed",
-        ]
-        shell("rm " + " ".join(files_to_remove))
+			"windowsAcrossGenomeWithZeroAndNonZeroMatchingKmersJustNonIntrogressed.bed",
+			"zero_windows.bed",
+			"windows_not_including_introgressed_regions.bed",
+		]
+		shell("rm " + " ".join(files_to_remove))
 
 
 rule makeHistogram_logx:
@@ -261,20 +261,20 @@ rule check_bed_sorted:
 	input: szKmerCountBed
 	output: szKmerCountBed, szKmerCountBedSortedFlag
 	resources:
-            threads=1,
-            mem=10,
-            disk=10
+		threads=1,
+		mem=10,
+		disk=10
 	run:
-            szCommand = (
-                "if ! sort -k1,1V -k2,2n -c \"" + str(input) + "\" 2>/dev/null; "
-                "then echo sorting \"" + str(input) + "\"; "
-                "tmp=$(mktemp); "
-                "sort -k1,1V -k2,2n \"" + str(input) + "\" > \"$tmp\" && mv \"$tmp\" \"" + str(input) + "\"; "
-                "fi"
-                " && touch " + str( output )
-            )
-            print( "about to execute: " + szCommand )
-            shell( szCommand )
+		szCommand = (
+			"if ! sort -k1,1V -k2,2n -c \"" + str(input) + "\" 2>/dev/null; "
+			"then echo sorting \"" + str(input) + "\"; "
+			"tmp=$(mktemp); "
+			"sort -k1,1V -k2,2n \"" + str(input) + "\" > \"$tmp\" && mv \"$tmp\" \"" + str(input) + "\"; "
+			"fi"
+			" && touch " + str( output )
+		)
+		print( "about to execute: " + szCommand )
+		shell( szCommand )
 
 
 rule convert_wig_to_bed:
@@ -314,11 +314,11 @@ rule make_windows_across_genome:
 		shell( szCommand )
 
 		szCommand = (
-				"if ! sort -k1,1V -k2,2n -c \"" + szWindowsAcrossGenome + "\" 2>/dev/null; "
-				"then echo sorting \"" + szWindowsAcrossGenome + "\"; "
-				"tmp=$(mktemp); "
-				"sort -k1,1V -k2,2n \"" + szWindowsAcrossGenome + "\" > \"$tmp\" && mv \"$tmp\" \"" + szWindowsAcrossGenome + "\"; "
-				"fi"
+			"if ! sort -k1,1V -k2,2n -c \"" + szWindowsAcrossGenome + "\" 2>/dev/null; "
+			"then echo sorting \"" + szWindowsAcrossGenome + "\"; "
+			"tmp=$(mktemp); "
+			"sort -k1,1V -k2,2n \"" + szWindowsAcrossGenome + "\" > \"$tmp\" && mv \"$tmp\" \"" + szWindowsAcrossGenome + "\"; "
+			"fi"
 		)
 		print( "about to execute: " + szCommand )
 		shell( szCommand )

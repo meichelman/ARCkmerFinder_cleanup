@@ -259,7 +259,7 @@ rule assign_kmer_counts_to_windows:
 # unsorted file in order to maintain the file name for subsequent rules.
 rule check_bed_sorted:
 	input: szKmerCountBed
-	output: szKmerCountBed, szKmerCountBedSortedFlag
+	output: szKmerCountBedSortedFlag
 	resources:
 		threads=1,
 		mem=10,

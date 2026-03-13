@@ -105,7 +105,7 @@ rule makeHistogram_logx:
 	output: szHistogramLogFile
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_logx.R " + szHistogramLogFile + " " + szHistogramLogTitle + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
+		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_logx.R " + szHistogramLogFile + " " + szHistogramLogTitle + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -115,10 +115,10 @@ rule makeHistogram_linear_with_limit:
 	output: szHistogramFileLinearWithLimit
 	localrule: True
 	run:
-		szCommand = f"./findTopNPerCentForHistogramLimit2.py --szInputFile {szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers} --nWhichColumn 4 --fTopNPerCent 0.3 --szOutputFileContainingMax {fileLimitForHistogram}"
+		szCommand = f"./plotting/scripts/findTopNPerCentForHistogramLimit2.py --szInputFile {szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers} --nWhichColumn 4 --fTopNPerCent 0.3 --szOutputFileContainingMax {fileLimitForHistogram}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_linear_with_limit.R " + szHistogramFileLinearWithLimit + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers + " `cat {fileLimitForHistogram}` "
+		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_with_limit.R " + szHistogramFileLinearWithLimit + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers + " `cat {fileLimitForHistogram}` "
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -128,7 +128,7 @@ rule makeHistogram_linear_no_limit:
 	output: szHistogramFile
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_linear_no_limit.R " + szHistogramFile + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
+		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_no_limit.R " + szHistogramFile + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -138,7 +138,7 @@ rule makeIdeogramSquishHaplotypes:
 	output: szIdeogramFileSquishHaplotypes
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript make_ideogram_squish_haps.R {output} {input.bed} " + szAssemblyBasename + " " + szTopNPerCentKmerCountWindows + " " + szTopNPerCentKmerCountWindowsSwitchedHaplotypes + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBed + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
+		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/make_ideogram_squish_haps.R {output} {input.bed} " + szAssemblyBasename + " " + szTopNPerCentKmerCountWindows + " " + szTopNPerCentKmerCountWindowsSwitchedHaplotypes + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBed + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -149,7 +149,7 @@ rule topNPerCentSwitchHaplotypes:
 	localrule: True
 	run:
 		# warning:  contig names are hard-code here for now
-		szCommand = f"./switch_haps.py --szInputBedFile {szTopNPerCentKmerCountWindows} --szOutputBedFile {szTopNPerCentKmerCountWindowsSwitchedHaplotypes} --szContig1 Loschbour_sample1_1 --szContig2 Loschbour_sample1_2"
+		szCommand = f"./plotting/scripts/switch_haps.py --szInputBedFile {szTopNPerCentKmerCountWindows} --szOutputBedFile {szTopNPerCentKmerCountWindowsSwitchedHaplotypes} --szContig1 Loschbour_sample1_1 --szContig2 Loschbour_sample1_2"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -159,7 +159,7 @@ rule makeIdeogram:
 	output: szIdeogramFile
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript make_ideogram6_rectangles.R {output} {input.bed} " + szAssemblyBasename + " " + szTopNPerCentKmerCountWindows + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBed + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
+		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/make_ideogram6_rectangles.R {output} {input.bed} " + szAssemblyBasename + " " + szTopNPerCentKmerCountWindows + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBed + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -169,7 +169,7 @@ rule figureOutWhichContigsToDisplay:
 	output: szFileOfContigsToDisplayOnLeft, szFileOfContigsToDisplayOnRight
 	localrule: True
 	run:
-		szCommand = "./figureOutWhichContigsToDisplay.sh {input} 12 " + szFileOfContigsToDisplayOnLeft + " " + szFileOfContigsToDisplayOnRight
+		szCommand = "./plotting/scripts/figureOutWhichContigsToDisplay.sh {input} 12 " + szFileOfContigsToDisplayOnLeft + " " + szFileOfContigsToDisplayOnRight
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -179,7 +179,7 @@ rule find_top_N_per_cent_bed:
 	output: szTopNPerCentKmerCountWindows
 	localrule: True
 	run:
-		szCommand = "./makeBedFileWithTopNPerCent.py --fTopPercent 1.0 --szInputBedFileWithNonZeroWindows " + szKmerCountInWindows + " --szBedFileOfAllWindows " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows
+		szCommand = "./plotting/scripts/makeBedFileWithTopNPerCent.py --fTopPercent 1.0 --szInputBedFileWithNonZeroWindows " + szKmerCountInWindows + " --szBedFileOfAllWindows " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -189,7 +189,7 @@ rule addColors:
 	output: szKmerCountInWindowsWithColor
 	localrule: True
 	run:
-		szCommand = f"cat {{input.ccount}} | ./addColors3.py --szContigsToDisplayOnLeft {szFileOfContigsToDisplayOnLeft} --szContigsToDisplayOnRight {szFileOfContigsToDisplayOnRight} >{{output}}"
+		szCommand = f"cat {{input.ccount}} | ./plotting/scripts/addColors3.py --szContigsToDisplayOnLeft {szFileOfContigsToDisplayOnLeft} --szContigsToDisplayOnRight {szFileOfContigsToDisplayOnRight} >{{output}}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -325,7 +325,7 @@ rule make_fai:
 	run:
 		bIsInCWD = is_directly_in_cwd( str(input ) )
 		print( "is in current directory ", bIsInCWD )
-		if ( not is_directly_in_cwd( str(input ) ) ):
+		if ( bIsInCWD ):
 			szCommand = f"ln -sf {input}"
 			print( "about to execute: " + szCommand )
 			shell( szCommand )

@@ -325,7 +325,7 @@ rule make_fai:
 	run:
 		bIsInCWD = is_directly_in_cwd( str(input ) )
 		print( "is in current directory ", bIsInCWD )
-		if ( bIsInCWD ):
+		if ( not bIsInCWD ):
 			szCommand = f"ln -sf {input}"
 			print( "about to execute: " + szCommand )
 			shell( szCommand )

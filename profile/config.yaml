@@ -24,7 +24,7 @@ cluster-cancel-nargs: 500 # cancel 500 jobs at a time, all will still be cancele
 printshellcmds: True
 reason: True
 show-failed-logs: True 
-latency-wait: 120
+latency-wait: 60
 cluster-status: status-sacct.sh
 use-conda: True
 max-jobs-per-second: 200

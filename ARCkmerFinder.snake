@@ -7,31 +7,27 @@ from pathlib import Path
 configfile: "config.yaml"
 
 
-szBedFileOfPutativeIntrogressedRegions = "fake_introgressed.bed"
-nWindowSize = 2000
-szAssemblyBasename = os.path.basename( config["assembly"] )
-print( f"szAssemblyBasename = {szAssemblyBasename}" )
+# Configuration variables
+szAssemblyPath = config["assembly"]
+szMerylDatabase = config["existing_meryl_database_path" ]
+nWindowSize = config["window_size"] # probably can't play with this until the plotting scripts are cleaned up
+szAssemblyBasename = os.path.basename( szAssemblyPath )
+szBedFileOfPutativeIntrogressedRegions = "fake_introgressed.bed" # this is used in plotting -- figure out how to get rid of it
 
 # Organizing windows
-szAssemblyFai = szAssemblyBasename + ".fai" # make_fai
-szAssemblyBed = szAssemblyBasename + ".bed" # assemblyFaiToBed
-szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_windows.bed" # make_windows_across_genome, doesn't have counts--just windows
+szAssemblyFai = szAssemblyBasename + ".fai"
+szAssemblyBed = szAssemblyBasename + ".bed"
+szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_windows.bed"
 
 # Counting k-mers
-szKmerCountWig = szAssemblyBasename + ".wig" # make_meryl_lookup
-szKmerCountBed = szKmerCountWig + ".bed" # convert_wig_to_bed
-szKmerCountBedSortedFlag = szKmerCountBed + ".sorted_flag" # check_bed_sorted
+szKmerCountWig = szAssemblyBasename + ".wig"
+szKmerCountBed = szKmerCountWig + ".bed"
+szKmerCountBedSortedFlag = szKmerCountBed + ".sorted_flag"
 
 # Organizing k-mer counts in windows
-szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window" # assign_kmer_counts_to_windows
-szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed" # groupby_kmer_counts_in_windows
-szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "counts_in_all_windows.bed" # makeHistogramPrerequisites
-szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions = "windows_across_genome_with_zero_and_nonzero_matching_kmers_and_including_introgressed_and_no_introgressed_regions.bed" # makeHistogramPrerequisites
-
-# the difference between szKmerCountBedWithWindow and
-# szKmerCountInWindows is that the "WithWindow" still has a bed file
-# line for each assembly base position, but the "InWindows" file has a
-# single bed line for each 20kb window (far fewer bed lines)
+szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window"
+szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed"
+szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "windows_across_genome_with_zero_and_nonzero_matching_kmers.bed"
 
 # Plotting
 szKmerCountInWindowsWithColor = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows_with_color.bed"  
@@ -64,11 +60,8 @@ def is_directly_in_cwd(file_path):
 	"""
 
 	full_path = os.path.abspath(file_path)
-
 	file_dir = os.path.dirname(full_path)
-
 	print( file_dir )
-
 	current_dir = os.getcwd()
 
 	if ( file_dir == current_dir):
@@ -81,7 +74,7 @@ def is_directly_in_cwd(file_path):
 
 rule all:
 	input:
-		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions,
+		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers,
 		szIdeogramFile,
 		szIdeogramFileSquishHaplotypes,
 		szHistogramLogFile,
@@ -91,6 +84,7 @@ rule all:
 	run:
 		files_to_remove = [
 			szAssemblyFai,
+			szAssemblyBasename + '.gzi',
 			szAssemblyBed,
 			szWindowsAcrossGenome,
 			szKmerCountWig,
@@ -98,53 +92,43 @@ rule all:
 			szKmerCountBedSortedFlag,
 			szKmerCountBedWithWindow,
 			szKmerCountInWindows,
-			szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers,
-			"windowsAcrossGenomeWithZeroAndNonZeroMatchingKmersJustNonIntrogressed.bed",
-			"zero_windows.bed",
-			"windows_not_including_introgressed_regions.bed",
+			szKmerCountInWindowsWithColor,
+			szFileOfContigsToDisplayOnLeft,
+			szFileOfContigsToDisplayOnRight,
+			fileLimitForHistogram
 		]
 		shell("rm " + " ".join(files_to_remove))
 
 
 rule makeHistogram_logx:
-	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
+	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 	output: szHistogramLogFile
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_logx.R " + szHistogramLogFile + " " + szHistogramLogTitle + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
+		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_logx.R " + szHistogramLogFile + " " + szHistogramLogTitle + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
 rule makeHistogram_linear_with_limit:
-	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
+	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 	output: szHistogramFileLinearWithLimit
 	localrule: True
 	run:
-		szCommand = f"./findTopNPerCentForHistogramLimit2.py --szInputFile {szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions} --nWhichColumn 4 --fTopNPerCent 0.3 --szOutputFileContainingMax {fileLimitForHistogram}"
+		szCommand = f"./findTopNPerCentForHistogramLimit2.py --szInputFile {szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers} --nWhichColumn 4 --fTopNPerCent 0.3 --szOutputFileContainingMax {fileLimitForHistogram}"
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_linear_with_limit.R " + szHistogramFileLinearWithLimit + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions + " `cat {fileLimitForHistogram}` "
+		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_linear_with_limit.R " + szHistogramFileLinearWithLimit + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers + " `cat {fileLimitForHistogram}` "
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
 rule makeHistogram_linear_no_limit:
-	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
+	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 	output: szHistogramFile
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_linear_no_limit.R " + szHistogramFile + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
-
-
-rule makeHistogramPrerequisites:
-	input: szWindowsAcrossGenome, szKmerCountInWindows, szBedFileOfPutativeIntrogressedRegions
-	output: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions
-	localrule: True
-	run:
-		szCommand = f"./makeHistogramPrerequisites.py --szWindowsAcrossGenome {szWindowsAcrossGenome} --szKmerCountInWindows {szKmerCountInWindows} --szBedFileOfPutativeIntrogressedRegions {szBedFileOfPutativeIntrogressedRegions} --szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions {szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmersAndIncludingIntrogressedAndNoIntrogressedRegions}"
+		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript histogram_linear_no_limit.R " + szHistogramFile + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -195,7 +179,7 @@ rule find_top_N_per_cent_bed:
 	output: szTopNPerCentKmerCountWindows
 	localrule: True
 	run:
-		szCommand = "./makeBedFileWithTopNPerCent.py --fTopPercent 1.0 --szInputBedFileWithNonZero2kbRegions " + szKmerCountInWindows + " --szBedFileOfAll2kbRegions " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows;
+		szCommand = "./makeBedFileWithTopNPerCent.py --fTopPercent 1.0 --szInputBedFileWithNonZeroWindows " + szKmerCountInWindows + " --szBedFileOfAllWindows " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -210,22 +194,23 @@ rule addColors:
 		shell( szCommand )
 
 
-# szKmerCountBedWithWindow differs from szKmerCountInWindows in that
-# each kmer has a line while szKmerCountInWindows has a single line for
-# each 2kb window
-
-# szKmerCountInWindows has a number, for each 2kb window, of kmers from
-# PNG16_vs_Chagyrskaya_minus_HG03516_greater_than_5.  If a kmer is found
-# more than once in the 2kb window, it is counted more than once?  Yes.
-# meryl-lookup notes for each kmer, how many times it is found in the
-# reads (by the meryl database).  But that count is ignored by this
-# pipeline.  Each kmer found is assigned to a 2kb window.  bedtools
-# groupby then counts how many kmers for each 2kb are found in the
-# meryl database.  Some of these kmers may be the same.  We don't know
-# and don't care.  Just how many kmers in each 2kb region are found in
-# the meryl database.
+# --------------------------------------------------------------------
+# Everything below is for generating the archaic k-mer counts bed file
+# --------------------------------------------------------------------
 
 
+# Generate final archaic k-mer counts bed file with the number of matching k-mers in each window (including zero and non-zero windows with matching k-mers)
+rule make_archaic_kmer_counts_bed_file:
+	input: szWindowsAcrossGenome, szKmerCountInWindows
+	output: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
+	localrule: True
+	run:
+		szCommand = f"./makeBedFileWithArchaicKmerCounts.py --szWindowsAcrossGenome {szWindowsAcrossGenome} --szKmerCountInWindows {szKmerCountInWindows} --szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers {szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers}"
+		print( "about to execute: " + szCommand )
+		shell( szCommand )
+
+
+# Groupby the bed file of k-mer counts at each base position to get the number of matching k-mers in each window
 rule groupby_kmer_counts_in_windows:
 	input: szKmerCountBedWithWindow
 	output: szKmerCountInWindows
@@ -236,6 +221,8 @@ rule groupby_kmer_counts_in_windows:
 		shell( szCommand )
 
 
+# Assign the k-mer counts at each base position to the windows across the genome, so that
+# we can then groupby to get the number of matching k-mers in each window
 rule assign_kmer_counts_to_windows:
 	input: szWindowsAcrossGenome, szKmerCountBed, szKmerCountBedSortedFlag
 	output: szKmerCountBedWithWindow
@@ -247,16 +234,12 @@ rule assign_kmer_counts_to_windows:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
-		# check that the output file is sorted
 		szCommand = "sort -k1,1V -k2,2n -c " + szKmerCountBedWithWindow
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
-# Changed the command below to catching the sorting error and performing the sorting.
-# szCommand = "sort -k1,1V -k2,2n -c <" + str( input ) + " && touch " + str( output ) 
-# This way writes the sorted file to a temporary file, then moves the temp file to replace the original
-# unsorted file in order to maintain the file name for subsequent rules.
+# Check if the bed file of k-mer counts is sorted, and if not, sort it
 rule check_bed_sorted:
 	input: szKmerCountBed
 	output: szKmerCountBedSortedFlag
@@ -277,6 +260,7 @@ rule check_bed_sorted:
 		shell( szCommand )
 
 
+# Convert the wig file of k-mer counts to a bed file of k-mer counts
 rule convert_wig_to_bed:
 	input: szKmerCountWig
 	output: szKmerCountBed
@@ -289,21 +273,19 @@ rule convert_wig_to_bed:
 		shell( szCommand )
 
 
-# I saw this using 600% cpu and 12G memory so decreasing it
-# but then 14 out of 260 failed because they used more than 20G of memory so
-# increasing it to 30G
+# Generate a wig file with the k-mer counts at each base position in the assembly
 rule make_meryl_lookup:
 	output: szKmerCountWig
 	resources:
 		threads=7,
 		mem=30
 	run:
-		szMerylDatabase = config["existing_meryl_database_path" ]
-		szCommand = "module load meryl/1.4.1 && meryl-lookup -wig-count -output " + str( output ) + " -sequence " + config["assembly"] + " -mers " +  szMerylDatabase 
+		szCommand = "module load meryl/1.4.1 && meryl-lookup -wig-count -output " + str( output ) + " -sequence " + szAssemblyPath + " -mers " +  szMerylDatabase 
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
+# Generate a bed file of nWindowSize windows across the genome
 rule make_windows_across_genome:
 	input: szAssemblyFai
 	output: szWindowsAcrossGenome
@@ -324,6 +306,7 @@ rule make_windows_across_genome:
 		shell( szCommand )
 
 
+# Generate a bed file of the assembly from the fai file
 rule assemblyFaiToBed:
 	input: szAssemblyFai
 	output: szAssemblyBed
@@ -334,8 +317,9 @@ rule assemblyFaiToBed:
 		shell( szCommand )
 
 
+# Generate the indexed assembly file
 rule make_fai:
-	input: config["assembly"]
+	input: szAssemblyPath
 	output: szAssemblyFai
 	localrule: True
 	run:

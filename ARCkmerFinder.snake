@@ -8,6 +8,7 @@ configfile: "config.yaml"
 szAssemblyPath = config["assembly"]
 szMerylDatabase = config["existing_meryl_database_path" ]
 nWindowSize = config["window_size"] # probably can't play with this until the plotting scripts are cleaned up
+bRemoveIntermediateFiles = config["remove_intermediate_files"]
 szAssemblyBasename = os.path.basename( szAssemblyPath )
 szBedFileOfPutativeIntrogressedRegions = "fake_introgressed.bed" # this is used in plotting -- figure out how to get rid of it
 
@@ -99,8 +100,8 @@ rule all:
 			fileLimitForHistogram
 		]
 		szCommand = f"rm {' '.join(files_to_remove)}"
-		print(f"about to execute: {szCommand}")
-		shell(szCommand)
+		if bRemoveIntermediateFiles:
+			shell(szCommand)
 
 		szCommand = f"mkdir -p plotting/plots && mv *.png plotting/plots/"
 		shell(szCommand)
@@ -112,7 +113,6 @@ rule makeHistogram_logx:
 	localrule: True
 	run:
 		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_logx.R " + szHistogramLogFile + " " + szHistogramLogTitle + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -125,7 +125,6 @@ rule makeHistogram_linear_with_limit:
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_with_limit.R " + szHistogramFileLinearWithLimit + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers + " `cat {fileLimitForHistogram}` "
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -135,7 +134,6 @@ rule makeHistogram_linear_no_limit:
 	localrule: True
 	run:
 		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_no_limit.R " + szHistogramFile + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -145,7 +143,6 @@ rule makeIdeogramSquishHaplotypes:
 	localrule: True
 	run:
 		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/make_ideogram_squish_haps.R {output} {input.bed} " + szAssemblyBasename + " " + szTopNPerCentKmerCountWindows + " " + szTopNPerCentKmerCountWindowsSwitchedHaplotypes + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBed + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -156,7 +153,6 @@ rule topNPerCentSwitchHaplotypes:
 	run:
 		# warning:  contig names are hard-code here for now
 		szCommand = f"./plotting/scripts/switch_haps.py --szInputBedFile {szTopNPerCentKmerCountWindows} --szOutputBedFile {szTopNPerCentKmerCountWindowsSwitchedHaplotypes} --szContig1 Loschbour_sample1_1 --szContig2 Loschbour_sample1_2"
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -166,7 +162,6 @@ rule makeIdeogram:
 	localrule: True
 	run:
 		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/make_ideogram6_rectangles.R {output} {input.bed} " + szAssemblyBasename + " " + szTopNPerCentKmerCountWindows + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBed + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -176,7 +171,6 @@ rule figureOutWhichContigsToDisplay:
 	localrule: True
 	run:
 		szCommand = "./plotting/scripts/figureOutWhichContigsToDisplay.sh {input} 12 " + szFileOfContigsToDisplayOnLeft + " " + szFileOfContigsToDisplayOnRight
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -186,7 +180,6 @@ rule find_top_N_per_cent_bed:
 	localrule: True
 	run:
 		szCommand = "./plotting/scripts/makeBedFileWithTopNPerCent.py --fTopPercent 1.0 --szInputBedFileWithNonZeroWindows " + szKmerCountInWindows + " --szBedFileOfAllWindows " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -196,7 +189,6 @@ rule addColors:
 	localrule: True
 	run:
 		szCommand = f"cat {{input.ccount}} | ./plotting/scripts/addColors3.py --szContigsToDisplayOnLeft {szFileOfContigsToDisplayOnLeft} --szContigsToDisplayOnRight {szFileOfContigsToDisplayOnRight} >{{output}}"
-		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
 
@@ -214,16 +206,13 @@ rule make_archaic_kmer_counts_bed_file:
 		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 	localrule: True
 	run:
-		szCommand = f"module load bedtools/2.29.2 && bedtools subtract -a {input[0]} -b {input[1]} | awk '{{print $0\"\t0\" }}' > {szZeroKmerCountWindows}"
-		print(f"about to execute: {szCommand}")
+		szCommand = f"module load bedtools/2.29.2 && bedtools subtract -a {input[0]} -b {input[1]} | awk '{print $0 "\\t0" }' > {szZeroKmerCountWindows}"
 		shell(szCommand)
 
 		szCommand = f"cat {input[1]} {szZeroKmerCountWindows} > {szKmerCountInAllWindows}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 		szCommand = f"cat {szCountInAllWindows} | sort -k1,1V -k2,2n >{output}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 
@@ -236,7 +225,6 @@ rule groupby_kmer_counts_in_windows:
 	localrule: True
 	run:
 		szCommand = "module load bedtools/2.29.2 && bedtools groupby -i {input} -g 6,7,8 -o count -c 5 >{output}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 
@@ -244,8 +232,8 @@ rule groupby_kmer_counts_in_windows:
 # we can then groupby to get the number of matching k-mers in each window
 rule assign_kmer_counts_to_windows:
 	input:
-		szWindowsAcrossGenome
-		szKmerCountBed
+		szWindowsAcrossGenome,
+		szKmerCountBed,
 		szKmerCountBedSortedFlag
 	output:
 		szKmerCountBedWithWindow
@@ -254,11 +242,9 @@ rule assign_kmer_counts_to_windows:
 		mem=100
 	run:
 		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools intersect -sorted -a {input[1]} -b {input[0]} -wa -wb >{output}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 		szCommand = "sort -k1,1V -k2,2n -c {output}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 
@@ -281,7 +267,6 @@ rule check_bed_sorted:
 			"fi"
 			" && touch {output}"
 		)
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 
@@ -296,7 +281,6 @@ rule convert_wig_to_bed:
 		mem=15
 	run:
 		szCommand = "module load bedops/2.4.41 && wig2bed --do-not-sort <{input} >{output}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 
@@ -309,7 +293,6 @@ rule make_meryl_lookup:
 		mem=30
 	run:
 		szCommand = f"module load meryl/1.4.1 && meryl-lookup -wig-count -output {output} -sequence {szAssemblyPath} -mers {szMerylDatabase}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 
@@ -322,7 +305,6 @@ rule make_windows_across_genome:
 	localrule: True
 	run:
 		szCommand = f"module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools makewindows -g {input} -w {nWindowSize} >{output}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 		szCommand = (
@@ -332,7 +314,6 @@ rule make_windows_across_genome:
 			"sort -k1,1V -k2,2n \"{output}\" > \"$tmp\" && mv \"$tmp\" \"{output}\"; "
 			"fi"
 		)
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 
@@ -345,7 +326,6 @@ rule assemblyFaiToBed:
 	localrule: True
 	run:
 		szCommand = "cat {input} | awk '{{print $1\"\t1\t\"$2}}' >{output}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)
 
 
@@ -362,9 +342,7 @@ rule make_fai:
 
 		if not bIsInCWD:
 			szCommand = f"ln -sf {input}"
-			print(f"about to execute: {szCommand}")
 			shell(szCommand)
                         
 		szCommand = f"module load samtools/1.20 && samtools faidx {szAssemblyBasename}"
-		print(f"about to execute: {szCommand}")
 		shell(szCommand)

@@ -2,7 +2,7 @@
 # the top 1% locations
 
 
-options(echo=TRUE) # if you want see commands in output file
+# options(echo=TRUE) # if you want see commands in output file
 args <- commandArgs(trailingOnly = TRUE)
 
 szOutput <- args[1]

@@ -61,14 +61,14 @@ def is_directly_in_cwd(file_path):
 
 	full_path = os.path.abspath(file_path)
 	file_dir = os.path.dirname(full_path)
-	print( file_dir )
+	# print(f"Assembly path: {file_dir}")
 	current_dir = os.getcwd()
 
 	if ( file_dir == current_dir):
-		print( "the path is in the cwd" )
+		# print(f"The assembly path is in the current working directory")
 		return True
 	else:
-		print("the path is not in the cwd" )
+		# print(f"The assembly path is not in the current working directory")
 		return False
 
 
@@ -206,13 +206,16 @@ rule make_archaic_kmer_counts_bed_file:
 		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 	localrule: True
 	run:
-		szCommand = f"module load bedtools/2.29.2 && bedtools subtract -a {input[0]} -b {input[1]} | awk '{print $0 "\\t0" }' > {szZeroKmerCountWindows}"
+		szCommand = f"module load bedtools/2.29.2 && bedtools subtract -a {input[0]} -b {input[1]} | sed 's/$/\\t0/' > {szZeroKmerCountWindows}"
+		print(szCommand)
 		shell(szCommand)
 
 		szCommand = f"cat {input[1]} {szZeroKmerCountWindows} > {szKmerCountInAllWindows}"
+		print(szCommand)
 		shell(szCommand)
 
-		szCommand = f"cat {szCountInAllWindows} | sort -k1,1V -k2,2n >{output}"
+		szCommand = f"cat {szKmerCountInAllWindows} | sort -k1,1V -k2,2n >{output}"
+		print(szCommand)
 		shell(szCommand)
 
 
@@ -293,6 +296,7 @@ rule make_meryl_lookup:
 		mem=30
 	run:
 		szCommand = f"module load meryl/1.4.1 && meryl-lookup -wig-count -output {output} -sequence {szAssemblyPath} -mers {szMerylDatabase}"
+		print(szCommand)
 		shell(szCommand)
 
 
@@ -338,7 +342,7 @@ rule make_fai:
 	localrule: True
 	run:
 		bIsInCWD = is_directly_in_cwd(str(input))
-		print(f"is in current directory {bIsInCWD}")
+		# print(f"is in current directory {bIsInCWD}")
 
 		if not bIsInCWD:
 			szCommand = f"ln -sf {input}"

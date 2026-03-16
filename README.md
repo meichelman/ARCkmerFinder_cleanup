@@ -1,8 +1,8 @@
 # ARCkmerFinder
 
 To run the pipeline:
-1. mkdir {new_directory} && cd {new_directory}
-2. git clone git@github.com:dgordon562/ARCkmerFinder.git .
+1. `mkdir {new_directory} && cd {new_directory}`
+2. `git clone git@github.com:dgordon562/ARCkmerFinder.git .`
 3. Edit the assembly and existing meryl database paths lines in config.yaml
 4. Run `./sbatch_run_snakemake.sh`
 
@@ -29,8 +29,9 @@ A .fai file (3) is made for the assembly, and from this a set of non-overlapping
 ARCkmerFinder combines the number of k-mers in each window (6). This file is sorted such that the contigs are listed in order which is the main output (7). From here, several scripts for plotting information regarding the k-mer counts in the windows across the entire assembly output some histograms and ideograms.
 
 THINGS TO ADD:
-- Required libraries
-- ...
+- Specify required R libraries
+- Resolve fake_introgressed.bed
+- Remove switch_haps.py and corresponding rule
 
 <!-- The # of distinct kmers (AAAA is counted once no matter how many AAAA
 are in the reads) is counted for each meryl dataset.  (K) This takes a

@@ -9,4 +9,4 @@ source /projects/standard/hsiehph/shared/bin/initialize_conda.sh
 conda activate snakemake
 
 
-snakemake -s ARCkmerFinder.snake --jobname "{rulename}.{jobid}" --profile profile -w 60 --jobs 50 -p -k
+snakemake --snakefile ARCkmerFinder.snake --jobname "{rulename}.{jobid}" --profile profile --latency-wait 60 --printshellcmds --keep-going

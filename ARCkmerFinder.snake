@@ -27,6 +27,8 @@ szKmerCountBedSortedFlag = szKmerCountBed + ".sorted_flag"
 # Organizing k-mer counts in windows
 szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window"
 szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed"
+szZeroKmerCountWindows = "zero_windows.bed"
+szKmerCountInAllWindows = "counts_in_all_windows.bed"
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "windows_across_genome_with_zero_and_nonzero_matching_kmers.bed"
 
 # Plotting
@@ -92,12 +94,19 @@ rule all:
 			szKmerCountBedSortedFlag,
 			szKmerCountBedWithWindow,
 			szKmerCountInWindows,
+			szZeroKmerCountWindows,
+			szKmerCountInAllWindows,
 			szKmerCountInWindowsWithColor,
 			szFileOfContigsToDisplayOnLeft,
 			szFileOfContigsToDisplayOnRight,
 			fileLimitForHistogram
 		]
-		shell("rm " + " ".join(files_to_remove))
+		szCommand = f"rm {' '.join(files_to_remove)}"
+		print(f"about to execute: {szCommand}")
+		shell(szCommand)
+
+		szCommand = f"mkdir -p plotting/plots && mv *.png plotting/plots/"
+		shell(szCommand)
 
 
 rule makeHistogram_logx:
@@ -205,9 +214,17 @@ rule make_archaic_kmer_counts_bed_file:
 	output: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
 	localrule: True
 	run:
-		szCommand = f"./makeBedFileWithArchaicKmerCounts.py --szWindowsAcrossGenome {szWindowsAcrossGenome} --szKmerCountInWindows {szKmerCountInWindows} --szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers {szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers}"
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
+		szCommand = f"module load bedtools/2.29.2 && bedtools subtract -a {input.szWindowsAcrossGenome} -b {input.szKmerCountInWindows} | awk '{{print $0\"\t0\" }}' > {szZeroKmerCountWindows}"
+		print(f"about to execute: {szCommand}")
+		shell(szCommand)
+
+		szCommand = f"cat {input.szKmerCountInWindows} {szZeroKmerCountWindows} > {szKmerCountInAllWindows}"
+		print(f"about to execute: {szCommand}")
+		shell(szCommand)
+
+		szCommand = f"cat {szCountInAllWindows} | sort -k1,1V -k2,2n >{output.szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers}"
+		print(f"about to execute: {szCommand}")
+		shell(szCommand)
 
 
 # Groupby the bed file of k-mer counts at each base position to get the number of matching k-mers in each window
@@ -230,11 +247,11 @@ rule assign_kmer_counts_to_windows:
 		threads=10,
 		mem=100
 	run:
-		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools intersect -sorted -a " + szKmerCountBed + " -b " + szWindowsAcrossGenome + " -wa -wb >" + szKmerCountBedWithWindow
+		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools intersect -sorted -a " + {input.szKmerCountBed} + " -b " + {input.szWindowsAcrossGenome} + " -wa -wb >" + {output}
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
-		szCommand = "sort -k1,1V -k2,2n -c " + szKmerCountBedWithWindow
+		szCommand = "sort -k1,1V -k2,2n -c " + {output}
 		print( "about to execute: " + szCommand )
 		shell( szCommand )
 
@@ -319,17 +336,20 @@ rule assemblyFaiToBed:
 
 # Generate the indexed assembly file
 rule make_fai:
-	input: szAssemblyPath
-	output: szAssemblyFai
+	input:
+		szAssemblyPath
+	output:
+		szAssemblyFai
 	localrule: True
 	run:
-		bIsInCWD = is_directly_in_cwd( str(input ) )
-		print( "is in current directory ", bIsInCWD )
-		if ( not bIsInCWD ):
+		bIsInCWD = is_directly_in_cwd(str(input))
+		print(f"is in current directory {bIsInCWD}")
+
+		if not bIsInCWD:
 			szCommand = f"ln -sf {input}"
-			print( "about to execute: " + szCommand )
-			shell( szCommand )
+			print(f"about to execute: {szCommand}")
+			shell(szCommand)
                         
 		szCommand = f"module load samtools/1.20 && samtools faidx {szAssemblyBasename}"
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
+		print(f"about to execute: {szCommand}")
+		shell(szCommand)

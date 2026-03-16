@@ -17,8 +17,7 @@ args = parser.parse_args()
 
 
 # get nTotalWindows
-
-szCommand = "wc -l " + args.szBedFileOfAllWindowRegions + " | awk '{print $1}' "
+szCommand = "wc -l " + args.szBedFileOfAllWindows + " | awk '{print $1}' "
 print( "about to execute: " + szCommand )
 nTotalWindows = int( subprocess.check_output( szCommand, shell = True ) )
 

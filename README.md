@@ -24,7 +24,7 @@ The main output is windows_across_genome_with_zero_and_nonzero_matching_kmers.be
 3. Window end coordinate
 4. K-mer count in the window
 
-Intermediate files (automatic removal is specified in config.yaml):
+Files created by ARCkmerFinder (automatic removal is specified in config.yaml):
 1. Assembly.wig
 2. Assembly.bed
 3. Assembly.fai
@@ -40,7 +40,7 @@ A .fai file (3) is made for the assembly, and from this a set of non-overlapping
 
 ARCkmerFinder combines the number of k-mers in each window (6). This file is sorted such that the contigs are listed in order which is the main output (7). From here, several scripts for plotting information regarding the k-mer counts in the windows across the entire assembly output some histograms and ideograms.
 
-THINGS TO ADD:
+THINGS TO DO:
 - Add a script to automatically install the required R libraries, or provide an environment?
 
 <!-- The # of distinct kmers (AAAA is counted once no matter how many AAAA

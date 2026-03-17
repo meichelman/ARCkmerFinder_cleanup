@@ -1,5 +1,10 @@
 ---
-assembly: /path/to/assembly.fasta
-existing_meryl_database_path: /path/to/database.meryl
-window_size: 2000
-remove_intermediate_files: True
+kmer_counting:
+  assembly: /path/to/assembly.fasta
+  existing_meryl_database_path: /path/to/database.meryl
+  window_size: 2000
+  remove_intermediate_files: True
+
+plotting:
+  top_%_ of_windows: 1.0
+  contigs_to_display: 12

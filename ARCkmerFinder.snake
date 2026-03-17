@@ -5,13 +5,13 @@ configfile: "config.yaml"
 
 
 # Configuration variables
-szAssemblyPath = config["assembly"]
-szMerylDatabase = config["existing_meryl_database_path" ]
-nWindowSize = config["window_size"]
-bRemoveIntermediateFiles = config["remove_intermediate_files"]
+szAssemblyPath = config["kmer_counting"]["assembly"]
+szMerylDatabase = config["kmer_counting"]["existing_meryl_database_path"]
+nWindowSize = config["kmer_counting"]["window_size"]
+bRemoveIntermediateFiles = config["kmer_counting"]["remove_intermediate_files"]
+nTopNPercentOfWindows = config["plotting"]["top_%_ of_windows"]
+nContigsToDisplay = config["plotting"]["contigs_to_display"]
 szAssemblyBasename = os.path.basename( szAssemblyPath )
-nTopNPercentOfWindows = 1.0
-nContigsToDisplay = 12
 
 # Organizing windows
 szAssemblyFai = szAssemblyBasename + ".fai"
@@ -69,7 +69,6 @@ rule all:
 	input:
 		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers,
 		szIdeogramFile,
-		szIdeogramFileSquishHaplotypes,
 		szHistogramLogFile,
 		szHistogramFileLinearWithLimit,
 		szHistogramFile

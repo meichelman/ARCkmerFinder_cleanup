@@ -14,18 +14,18 @@ szAssemblyBedFile <- args[5]
 szFileOfContigsToDisplayOnLeft  <- args[6]
 szFileOfContigsToDisplayOnRight <- args[7]
 
-args[6]
-szFileOfContigsToDisplayOnLeft
+# args[6]
+# szFileOfContigsToDisplayOnLeft
 l_chroms_part1 = scan( szFileOfContigsToDisplayOnLeft, what = "character" )
-l_chroms_part1
+# l_chroms_part1
 l_chroms_part2 = scan( szFileOfContigsToDisplayOnRight,what = "character" )
-l_chroms_part2
+# l_chroms_part2
 
-szFileOfContigsToDisplayOnLeft
+# szFileOfContigsToDisplayOnLeft
 
 l_chroms_part1 = scan( szFileOfContigsToDisplayOnLeft, what = "character" )
 
-szFileOfContigsToDisplayOnRight
+# szFileOfContigsToDisplayOnRight
 
 l_chroms_part2 = scan( szFileOfContigsToDisplayOnRight, what = "character" )
 
@@ -51,7 +51,7 @@ if(!require('ggthemes')) {
 
 
 options(digits=20)
-options( echo = TRUE )
+# options( echo = TRUE )
 
 custom.genome <- toGRanges(read.delim( szAssemblyBedFile, header=F, sep=''))
 
@@ -85,8 +85,8 @@ p1 <- as.ggplot(expression(kp <- plotKaryotype(genome = custom.genome, plot.type
            chr = as.character( topNPerCentWindows$V1 ), 
            x0 = topNPerCentWindows$V2,
            x1 = topNPerCentWindows$V3,
-           y0 = rtopNPerCentWindowsBottom,
-           y1 = rtopNPerCentWindowsTop,
+           y0 = rTopNPerCentWindowsBottom,
+           y1 = rTopNPerCentWindowsTop,
            border = "darkolivegreen",
            r0 = r0,
            r1 = r1 ),
@@ -112,8 +112,8 @@ p2 <- as.ggplot(expression(kp <- plotKaryotype(genome = custom.genome, plot.type
            chr = as.character( topNPerCentWindows$V1 ), 
            x0 = topNPerCentWindows$V2,
            x1 = topNPerCentWindows$V3,
-           y0 = rtopNPerCentWindowsBottom,
-           y1 = rtopNPerCentWindowsTop,
+           y0 = rTopNPerCentWindowsBottom,
+           y1 = rTopNPerCentWindowsTop,
            border = "darkolivegreen",
            r0 = r0,
            r1 = r1 ),

@@ -22,8 +22,8 @@ print( "about to execute: " + szCommand )
 nTotalWindows = int( subprocess.check_output( szCommand, shell = True ) )
 
 # round
-nLineNumberOfTopOnePerCent = int( nTotalWindows * args.fTopPercent / 100 + 0.5 )
-print( f"nTotalWindows = {nTotalWindows} nLineNumberOfTopOnePerCent = {nLineNumberOfTopOnePerCent}" )
+nLineNumberOfTopNPerCent = int( nTotalWindows * args.fTopPercent / 100 + 0.5 )
+print( f"nTotalWindows = {nTotalWindows} nLineNumberOfTopNPerCent = {nLineNumberOfTopNPerCent}" )
 
 
 szCommand = "wc -l " + args.szInputBedFileWithNonZeroWindows + " | awk '{print $1 }' "
@@ -31,18 +31,18 @@ print( "about to execute: " + szCommand )
 nWindowsWithNonZeroCounts = int( subprocess.check_output( szCommand, shell = True ) )
 
 # this will occur if the genome is smaller than 200 kb
-if ( nLineNumberOfTopOnePerCent < 1 ):
-    nLineNumberOfTopOnePerCent = 1
+if ( nLineNumberOfTopNPerCent < 1 ):
+    nLineNumberOfTopNPerCent = 1
 
 
-if ( nLineNumberOfTopOnePerCent > nWindowsWithNonZeroCounts ):
+if ( nLineNumberOfTopNPerCent > nWindowsWithNonZeroCounts ):
     # sys.exit( "1% of " + str( nTotalWindows ) + " is " + str( nLineNumberOfTopOnePerCent ) + " but there are only " + str( nWindowsWithNonZeroCounts ) + " windows with non-zero counts so the 1% value is 0" )
-    print(f"WARNING: 1% of {nTotalWindows} is {nLineNumberOfTopOnePerCent} but there are only {nWindowsWithNonZeroCounts} windows with non-zero counts")
-    nLineNumberOfTopOnePerCent = nWindowsWithNonZeroCounts
+    print(f"WARNING: {args.fTopPercent}% of {nTotalWindows} is {nLineNumberOfTopNPerCent} but there are only {nWindowsWithNonZeroCounts} windows with non-zero counts")
+    nLineNumberOfTopNPerCent = nWindowsWithNonZeroCounts
 # If the number of windows with non-zero counts is <1% of the total number of windows (non-zero and zero counts)
 # then proceed with the number of windows with non-zero counts
 
-szCommand = "cat " + args.szInputBedFileWithNonZeroWindows + " |  awk '{print $4}' | sort -nr | sed -n " + str( nLineNumberOfTopOnePerCent ) + "p"
+szCommand = "cat " + args.szInputBedFileWithNonZeroWindows + " |  awk '{print $4}' | sort -nr | sed -n " + str( nLineNumberOfTopNPerCent ) + "p"
 print( "about to execute: " + szCommand )
 nMinValueOnePerCentile = int( subprocess.check_output( szCommand, shell = True ) )
 

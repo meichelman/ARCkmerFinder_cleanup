@@ -7,10 +7,11 @@ configfile: "config.yaml"
 # Configuration variables
 szAssemblyPath = config["assembly"]
 szMerylDatabase = config["existing_meryl_database_path" ]
-nWindowSize = config["window_size"] # probably can't play with this until the plotting scripts are cleaned up
+nWindowSize = config["window_size"]
 bRemoveIntermediateFiles = config["remove_intermediate_files"]
 szAssemblyBasename = os.path.basename( szAssemblyPath )
-szBedFileOfPutativeIntrogressedRegions = "fake_introgressed.bed" # this is used in plotting -- figure out how to get rid of it
+nTopNPercentOfWindows = 1.0
+nContigsToDisplay = 12
 
 # Organizing windows
 szAssemblyFai = szAssemblyBasename + ".fai"
@@ -32,14 +33,9 @@ szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "windows_across_genome_wi
 # Plotting
 szKmerCountInWindowsWithColor = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows_with_color.bed"  
 szTopNPerCentKmerCountWindows = "top_N_per_cent_kmer_windows.bed"
-szTopNPerCentKmerCountWindowsSwitchedHaplotypes = "top_N_per_cent_kmer_windows_switched_haplotypes.bed"
 szFileOfContigsToDisplayOnLeft  = "contigs_to_display_on_left.txt"
 szFileOfContigsToDisplayOnRight = "contigs_to_display_on_right.txt"
 fileLimitForHistogram = "x_limit_for_histogram.txt"
-szIdeogramFileSquishHaplotypes = "ideogram_squished_haplotypes.png"
-
-dictShortReadDataSetForMerylDatabasePath = {}
-
 szIdeogramFile = szAssemblyBasename + "_ideogram.png"
 szHistogramFile = szAssemblyBasename + "_histogram.png"
 szHistogramFileLinearWithLimit = szAssemblyBasename + "_with_limit_histogram.png"
@@ -61,14 +57,11 @@ def is_directly_in_cwd(file_path):
 
 	full_path = os.path.abspath(file_path)
 	file_dir = os.path.dirname(full_path)
-	# print(f"Assembly path: {file_dir}")
 	current_dir = os.getcwd()
 
 	if ( file_dir == current_dir):
-		# print(f"The assembly path is in the current working directory")
 		return True
 	else:
-		# print(f"The assembly path is not in the current working directory")
 		return False
 
 
@@ -107,89 +100,99 @@ rule all:
 		shell(szCommand)
 
 
+# Make the histogram of k-mer counts with a log x-axis
 rule makeHistogram_logx:
-	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
-	output: szHistogramLogFile
+	input:
+		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
+	output:
+		szHistogramLogFile
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_logx.R " + szHistogramLogFile + " " + szHistogramLogTitle + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
-		shell( szCommand )
+		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_logx.R {output} {szHistogramLogTitle} {input}"
+		shell(szCommand)
 
 
+# Make the histogram of k-mer counts with a linear x-axis and a limit on the x-axis that is determined by the top N % of windows with the highest k-mer counts
 rule makeHistogram_linear_with_limit:
-	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
-	output: szHistogramFileLinearWithLimit
+	input:
+		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
+	output:
+		szHistogramFileLinearWithLimit
 	localrule: True
 	run:
-		szCommand = f"./plotting/scripts/findTopNPerCentForHistogramLimit2.py --szInputFile {szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers} --nWhichColumn 4 --fTopNPerCent 0.3 --szOutputFileContainingMax {fileLimitForHistogram}"
-		print( "about to execute: " + szCommand )
-		shell( szCommand )
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_with_limit.R " + szHistogramFileLinearWithLimit + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers + " `cat {fileLimitForHistogram}` "
-		shell( szCommand )
+		szCommand = f"./plotting/scripts/findTopNPerCentForHistogramLimit2.py --szInputFile {input} --nWhichColumn 4 --fTopNPerCent {nTopNPercentOfWindows} --szOutputFileContainingMax {fileLimitForHistogram}"
+		shell(szCommand)
+
+		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_with_limit.R {output} {szAssemblyBasename} {input} `cat {fileLimitForHistogram}` "
+		shell(szCommand)
 
 
+# Make the histogram of k-mer counts with a linear x-axis and no limit on the x-axis
 rule makeHistogram_linear_no_limit:
-	input: szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
-	output: szHistogramFile
+	input:
+		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
+	output:
+		szHistogramFile
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_no_limit.R " + szHistogramFile + " " + szAssemblyBasename + " " + szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
-		shell( szCommand )
+		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_no_limit.R {output} {szAssemblyBasename} {input}"
+		shell(szCommand)
 
 
-rule makeIdeogramSquishHaplotypes:
-	input: bed = szKmerCountInWindowsWithColor, left_contigs=szFileOfContigsToDisplayOnLeft, right_contigs=szFileOfContigsToDisplayOnRight, assemblyBedFile=szAssemblyBed, topNPerCent=szTopNPerCentKmerCountWindows, topNPerCentSwitchedHaplotypes=szTopNPerCentKmerCountWindowsSwitchedHaplotypes
-	output: szIdeogramFileSquishHaplotypes
-	localrule: True
-	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/make_ideogram_squish_haps.R {output} {input.bed} " + szAssemblyBasename + " " + szTopNPerCentKmerCountWindows + " " + szTopNPerCentKmerCountWindowsSwitchedHaplotypes + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBed + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
-		shell( szCommand )
-
-
-rule topNPerCentSwitchHaplotypes:
-	input: topNPerCent=szTopNPerCentKmerCountWindows
-	output: szTopNPerCentKmerCountWindowsSwitchedHaplotypes
-	localrule: True
-	run:
-		# warning:  contig names are hard-code here for now
-		szCommand = f"./plotting/scripts/switch_haps.py --szInputBedFile {szTopNPerCentKmerCountWindows} --szOutputBedFile {szTopNPerCentKmerCountWindowsSwitchedHaplotypes} --szContig1 Loschbour_sample1_1 --szContig2 Loschbour_sample1_2"
-		shell( szCommand )
-
-
+# Make the ideogram with the top N % of windows with the highest k-mer counts colored differently
 rule makeIdeogram:
-	input: bed = szKmerCountInWindowsWithColor, left_contigs=szFileOfContigsToDisplayOnLeft, right_contigs=szFileOfContigsToDisplayOnRight, assemblyBedFile=szAssemblyBed, topNPerCent=szTopNPerCentKmerCountWindows
-	output: szIdeogramFile
+	input:
+		szKmerCountInWindowsWithColor,
+		szTopNPerCentKmerCountWindows,
+		szAssemblyBed,
+		szFileOfContigsToDisplayOnLeft, 
+		szFileOfContigsToDisplayOnRight
+	output:
+		szIdeogramFile
 	localrule: True
 	run:
-		szCommand = "module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/make_ideogram6_rectangles.R {output} {input.bed} " + szAssemblyBasename + " " + szTopNPerCentKmerCountWindows + " " + szBedFileOfPutativeIntrogressedRegions + " " + szAssemblyBed + " " + str(input.left_contigs ) + " " + str(input.right_contigs )
-		shell( szCommand )
+		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/make_ideogram6_rectangles.R {output} {input[0]} {szAssemblyBasename} {input[1]} {input[2]} {input[3]} {input[4]}"
+		shell(szCommand)
 
 
-rule figureOutWhichContigsToDisplay:
-	input: szAssemblyFai
-	output: szFileOfContigsToDisplayOnLeft, szFileOfContigsToDisplayOnRight
-	localrule: True
-	run:
-		szCommand = "./plotting/scripts/figureOutWhichContigsToDisplay.sh {input} 12 " + szFileOfContigsToDisplayOnLeft + " " + szFileOfContigsToDisplayOnRight
-		shell( szCommand )
-
-
+# Get the top N % of windows with the highest k-mer counts
 rule find_top_N_per_cent_bed:
-	input: szKmerCountInWindows, szWindowsAcrossGenome
-	output: szTopNPerCentKmerCountWindows
+	input:
+		szKmerCountInWindows,
+		szWindowsAcrossGenome
+	output:
+		szTopNPerCentKmerCountWindows
 	localrule: True
 	run:
-		szCommand = "./plotting/scripts/makeBedFileWithTopNPerCent.py --fTopPercent 1.0 --szInputBedFileWithNonZeroWindows " + szKmerCountInWindows + " --szBedFileOfAllWindows " + szWindowsAcrossGenome + " --szOutputBedFile " + szTopNPerCentKmerCountWindows
-		shell( szCommand )
+		szCommand = f"./plotting/scripts/makeBedFileWithTopNPerCent.py --fTopPercent {nTopNPercentOfWindows} --szInputBedFileWithNonZeroWindows {input[0]} --szBedFileOfAllWindows {input[1]} --szOutputBedFile {output}"
+		shell(szCommand)
 
 
+# Add colors to the bed file of k-mer counts in windows for the ideograms
 rule addColors:
-	input: ccount=szKmerCountInWindows, lleft=szFileOfContigsToDisplayOnLeft, rright=szFileOfContigsToDisplayOnRight
-	output: szKmerCountInWindowsWithColor
+	input:
+		szKmerCountInWindows,
+		szFileOfContigsToDisplayOnLeft,
+		szFileOfContigsToDisplayOnRight
+	output:
+		szKmerCountInWindowsWithColor
 	localrule: True
 	run:
-		szCommand = f"cat {{input.ccount}} | ./plotting/scripts/addColors3.py --szContigsToDisplayOnLeft {szFileOfContigsToDisplayOnLeft} --szContigsToDisplayOnRight {szFileOfContigsToDisplayOnRight} >{{output}}"
-		shell( szCommand )
+		szCommand = f"cat {input[0]} | ./plotting/scripts/addColors3.py --szContigsToDisplayOnLeft {input[1]} --szContigsToDisplayOnRight {input[2]} >{output}"
+		shell(szCommand)
+
+
+# Figure out which contigs to display on the left and right of the ideogram
+rule figureOutWhichContigsToDisplay:
+	input:
+		szAssemblyFai
+	output:
+		szFileOfContigsToDisplayOnLeft, 
+		szFileOfContigsToDisplayOnRight
+	localrule: True
+	run:
+		szCommand = f"./plotting/scripts/figureOutWhichContigsToDisplay.sh {input} {nContigsToDisplay} {output[0]} {output[1]}"
+		shell(szCommand)
 
 
 # --------------------------------------------------------------------

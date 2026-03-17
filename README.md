@@ -6,6 +6,18 @@ To run the pipeline:
 3. Edit the assembly and existing meryl database paths lines in config.yaml
 4. Run `./sbatch_run_snakemake.sh`
 
+Required R libraries:
+- library(ggplot2)
+- library(gridExtra)
+- library(ggpubr)
+- library(karyoploteR)
+- library(plyranges)
+- library(tidyr)
+- library(dplyr)
+- library(stringr)
+- library(ggplotify)
+- library(cowplot)
+
 The main output is windows_across_genome_with_zero_and_nonzero_matching_kmers.bed and a number of plots. The file windows_across_genome_with_zero_and_nonzero_matching_kmers.bed has 4 columns:
 1. Assembly contig
 2. Window start coordinate
@@ -29,9 +41,7 @@ A .fai file (3) is made for the assembly, and from this a set of non-overlapping
 ARCkmerFinder combines the number of k-mers in each window (6). This file is sorted such that the contigs are listed in order which is the main output (7). From here, several scripts for plotting information regarding the k-mer counts in the windows across the entire assembly output some histograms and ideograms.
 
 THINGS TO ADD:
-- Specify required R libraries
-- Resolve fake_introgressed.bed
-- Remove switch_haps.py and corresponding rule
+- Add a script to automatically install the required R libraries, or provide an environment?
 
 <!-- The # of distinct kmers (AAAA is counted once no matter how many AAAA
 are in the reads) is counted for each meryl dataset.  (K) This takes a

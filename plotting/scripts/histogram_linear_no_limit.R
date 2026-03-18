@@ -1,4 +1,4 @@
-options(echo=TRUE) # if you want see commands in output file
+# options(echo=TRUE) # if you want see commands in output file
 args <- commandArgs(trailingOnly = TRUE)
 
 
@@ -17,7 +17,7 @@ df <- read.table( szInputFile, comment.char = '' )
 
 
 # Change density plot line colors by groups
-p <- ggplot(df, aes(x=V4, fill=V5, y = after_stat(density))) +
+p <- ggplot(df, aes(x=V4, y = after_stat(density))) +
   geom_histogram(position="dodge", binwidth = 5)
 
 p <- p + ggtitle( szTitle )

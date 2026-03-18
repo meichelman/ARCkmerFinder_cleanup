@@ -1,33 +1,31 @@
 # differs from make_ideogram4_rectangles.R in that it labels
-# the top 1% locations
+# the top N% locations
 
 
-options(echo=TRUE) # if you want see commands in output file
+# options(echo=TRUE) # if you want see commands in output file
 args <- commandArgs(trailingOnly = TRUE)
 
 szOutput <- args[1]
 szInputBedFile <- args[2]
 szTitle <- args[3]
-szTopOnePerCentWindows <- args[4]
+szTopNPerCentWindows <- args[4]
 
-# this is the putative introgressed regions
-szInputRegionsForRectangles <- args[5]
-szAssemblyBedFile <- args[6]
-szFileOfContigsToDisplayOnLeft  <- args[7]
-szFileOfContigsToDisplayOnRight <- args[8]
+szAssemblyBedFile <- args[5]
+szFileOfContigsToDisplayOnLeft  <- args[6]
+szFileOfContigsToDisplayOnRight <- args[7]
 
-args[7]
-szFileOfContigsToDisplayOnLeft
+# args[6]
+# szFileOfContigsToDisplayOnLeft
 l_chroms_part1 = scan( szFileOfContigsToDisplayOnLeft, what = "character" )
-l_chroms_part1
+# l_chroms_part1
 l_chroms_part2 = scan( szFileOfContigsToDisplayOnRight,what = "character" )
-l_chroms_part2
+# l_chroms_part2
 
-szFileOfContigsToDisplayOnLeft
+# szFileOfContigsToDisplayOnLeft
 
 l_chroms_part1 = scan( szFileOfContigsToDisplayOnLeft, what = "character" )
 
-szFileOfContigsToDisplayOnRight
+# szFileOfContigsToDisplayOnRight
 
 l_chroms_part2 = scan( szFileOfContigsToDisplayOnRight, what = "character" )
 
@@ -53,14 +51,14 @@ if(!require('ggthemes')) {
 
 
 options(digits=20)
-options( echo = TRUE )
+# options( echo = TRUE )
 
 custom.genome <- toGRanges(read.delim( szAssemblyBedFile, header=F, sep=''))
 
 data <- read.delim( szInputBedFile, header = F,sep='')
 # no longer showing putative introgressed regions
 #regions <- read.delim( szInputRegionsForRectangles, header = F, sep = '' )
-topOnePerCentWindows <- read.delim( szTopOnePerCentWindows, header = F, sep = '' )
+topNPerCentWindows <- read.delim( szTopNPerCentWindows, header = F, sep = '' )
 
 
 plot.params <- getDefaultPlotParams(plot.type=1)
@@ -73,30 +71,29 @@ nMax = ceiling(max(data$V4)/1e3)*1e3
 r1 = 0.8
 r0 = 0.0
 
-#rTopOnePerCentWindows = 0.6
-rTopOnePerCentWindowsTop = 0.8
-rTopOnePerCentWindowsBottom = 0.6
+#rTopNPerCentWindows = 0.6
+rTopNPerCentWindowsTop = 0.8
+rTopNPerCentWindowsBottom = 0.6
 
 p1 <- as.ggplot(expression(kp <- plotKaryotype(genome = custom.genome, plot.type = 1, chromosomes=l_chroms_part1, plot.params = plot.params) %>% kpAddBaseNumbers(tick.dist = 20e6, add.units = "Mbp", cex=0.5 ),
    kpAddMainTitle(kp, main= szTitle ),  
    kpPoints( kp, chr = as.character( data$V1 ), x = data$V2, 
-            y = data$V4, pch=".", col=data$V5, cex=5, ymax = nMax, r0 = r0, r1 = r1),
+            y = data$V4, pch=".", cex=5, ymax = nMax, r0 = r0, r1 = r1),
 
 
    kpRect( kp, 
-           chr = as.character( topOnePerCentWindows$V1 ), 
-           x0 = topOnePerCentWindows$V2,
-           x1 = topOnePerCentWindows$V3,
-           y0 = rTopOnePerCentWindowsBottom,
-           y1 = rTopOnePerCentWindowsTop,
-           col = "darkolivegreen",
+           chr = as.character( topNPerCentWindows$V1 ), 
+           x0 = topNPerCentWindows$V2,
+           x1 = topNPerCentWindows$V3,
+           y0 = rTopNPerCentWindowsBottom,
+           y1 = rTopNPerCentWindowsTop,
            border = "darkolivegreen",
            r0 = r0,
            r1 = r1 ),
 
 
-#   kpPoints( kp, chr = as.character( topOnePerCentWindows$V1 ), x =
-#   topOnePerCentWindows$V2, y = rTopOnePerCentWindows, pch = 24, col =
+#   kpPoints( kp, chr = as.character( topNPerCentWindows$V1 ), x =
+#   topNPerCentWindows$V2, y = rtopNPerCentWindows, pch = 24, col =
 #   "darkolivegreen", bg = "darkolivegreen", cex = 0.5 ),
 
 
@@ -109,21 +106,20 @@ p1 <- as.ggplot(expression(kp <- plotKaryotype(genome = custom.genome, plot.type
 p2 <- as.ggplot(expression(kp <- plotKaryotype(genome = custom.genome, plot.type = 1, chromosomes=l_chroms_part2, plot.params = plot.params) %>% kpAddBaseNumbers(tick.dist = 20e6, add.units = "Mbp", cex=0.5 ),
 
    kpPoints( kp, chr = as.character( data$V1 ), x = data$V2, y = data$V4, 
-             pch=".", col=data$V5, cex=5, ymax = nMax, r0 = r0, r1 = r1),
+             pch=".", cex=5, ymax = nMax, r0 = r0, r1 = r1),
 
    kpRect( kp, 
-           chr = as.character( topOnePerCentWindows$V1 ), 
-           x0 = topOnePerCentWindows$V2,
-           x1 = topOnePerCentWindows$V3,
-           y0 = rTopOnePerCentWindowsBottom,
-           y1 = rTopOnePerCentWindowsTop,
-           col = "darkolivegreen",
+           chr = as.character( topNPerCentWindows$V1 ), 
+           x0 = topNPerCentWindows$V2,
+           x1 = topNPerCentWindows$V3,
+           y0 = rTopNPerCentWindowsBottom,
+           y1 = rTopNPerCentWindowsTop,
            border = "darkolivegreen",
            r0 = r0,
            r1 = r1 ),
 
 
-#   kpPoints( kp, chr = as.character( topOnePerCentWindows$V1 ), x = topOnePerCentWindows$V2, y = rTopOnePerCentWindows, pch = 24, col = "darkolivegreen", bg = "darkolivegreen", cex = 0.5 ),
+#   kpPoints( kp, chr = as.character( topNPerCentWindows$V1 ), x = topNPerCentWindows$V2, y = rtopNPerCentWindows, pch = 24, col = "darkolivegreen", bg = "darkolivegreen", cex = 0.5 ),
 
 
 

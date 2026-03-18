@@ -27,7 +27,7 @@ p <- p + xlab("# of kmers found in each 20kb region")
 p <- p + ylab("# of 20kb regions with # of kmers on x axis")
 p <- p + xlim( c(0, nXLimit ) )
 
-# p
+p
 
 
 dev.off()

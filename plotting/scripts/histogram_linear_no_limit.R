@@ -28,7 +28,7 @@ p <- p + ylab("# of 2kb regions with # of kmers on x axis, but normalized so all
 #p <- p + xlim(c(0,300) )
 #p <- p + ylim(c(0,0.03))
 
-# p
+p
 
 
 dev.off()

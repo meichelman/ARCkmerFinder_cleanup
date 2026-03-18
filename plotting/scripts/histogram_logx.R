@@ -27,7 +27,7 @@ p <- p + ggtitle( szTitle )
 p <- p + xlab("# of kmers found in each 20kb region")
 p <- p + ylab("# of 20kb regions with # of kmers on x axis")
 
-# p
+p
 
 
 dev.off()

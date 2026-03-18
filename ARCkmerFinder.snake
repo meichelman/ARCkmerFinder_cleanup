@@ -14,33 +14,33 @@ nContigsToDisplay = config["plotting"]["contigs_to_display"]
 szAssemblyBasename = os.path.basename( szAssemblyPath )
 
 # Organizing windows
-szAssemblyFai = szAssemblyBasename + ".fai"
-szAssemblyBed = szAssemblyBasename + ".bed"
-szWindowsAcrossGenome = szAssemblyBasename + "_" + str( nWindowSize ) + "_windows.bed"
+szAssemblyFai = f"{szAssemblyBasename}.fai"
+szAssemblyBed = f"{szAssemblyBasename}.bed"
+szWindowsAcrossGenome = f"{szAssemblyBasename}_{nWindowSize}_windows.bed"
 
 # Counting k-mers
-szKmerCountWig = szAssemblyBasename + ".wig"
-szKmerCountBed = szKmerCountWig + ".bed"
-szKmerCountBedSortedFlag = szKmerCountBed + ".sorted_flag"
+szKmerCountWig = f"{szAssemblyBasename}.wig"
+szKmerCountBed = f"{szKmerCountWig}.bed"
+szKmerCountBedSortedFlag = f"{szKmerCountBed}.sorted_flag"
 
 # Organizing k-mer counts in windows
-szKmerCountBedWithWindow = szAssemblyBasename + ".bed_with_window"
-szKmerCountInWindows = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows.bed"
+szKmerCountBedWithWindow = f"{szAssemblyBasename}.bed_with_window"
+szKmerCountInWindows = f"{szAssemblyBasename}_in_{nWindowSize}_windows.bed"
 szZeroKmerCountWindows = "zero_windows.bed"
 szKmerCountInAllWindows = "counts_in_all_windows.bed"
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "windows_across_genome_with_zero_and_nonzero_matching_kmers.bed"
 
 # Plotting
-szKmerCountInWindowsWithColor = szAssemblyBasename + "_in_" + str( nWindowSize ) + "_windows_with_color.bed"  
+szKmerCountInWindowsWithColor = f"{szAssemblyBasename}_in_{nWindowSize}_windows_with_color.bed"  
 szTopNPerCentKmerCountWindows = "top_N_per_cent_kmer_windows.bed"
 szFileOfContigsToDisplayOnLeft  = "contigs_to_display_on_left.txt"
 szFileOfContigsToDisplayOnRight = "contigs_to_display_on_right.txt"
 fileLimitForHistogram = "x_limit_for_histogram.txt"
-szIdeogramFile = szAssemblyBasename + "_ideogram.png"
-szHistogramFile = szAssemblyBasename + "_histogram.png"
-szHistogramFileLinearWithLimit = szAssemblyBasename + "_with_limit_histogram.png"
-szHistogramLogTitle = szAssemblyBasename + "_logx"
-szHistogramLogFile  = szHistogramLogTitle + "_histogram.png"
+szIdeogramFile = f"{szAssemblyBasename}_ideogram.png"
+szHistogramFile = f"{szAssemblyBasename}_histogram.png"
+szHistogramFileLinearWithLimit = f"{szAssemblyBasename}_with_limit_histogram.png"
+szHistogramLogTitle = f"{szAssemblyBasename}_logx"
+szHistogramLogFile  = f"{szHistogramLogTitle}_histogram.png"
 
 
 def is_directly_in_cwd(file_path):

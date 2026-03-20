@@ -243,8 +243,8 @@ rule assign_kmer_counts_to_windows:
 	output:
 		szKmerCountBedWithWindow
 	resources:
-		threads=10,
-		mem=100
+		threads=1,
+		mem=5
 	run:
 		szCommand = "module load bedtools2/2.31.0-gcc-8.2.0-7j35k74 && bedtools intersect -sorted -a {input[1]} -b {input[0]} -wa -wb >{output}"
 		shell(szCommand)
@@ -261,8 +261,8 @@ rule check_bed_sorted:
 		szKmerCountBedSortedFlag
 	resources:
 		threads=1,
-		mem=10,
-		disk=10
+		mem=5,
+		disk=5
 	run:
 		szCommand = (
 			"if ! sort -k1,1V -k2,2n -c \"{input}\" 2>/dev/null; "
@@ -283,7 +283,7 @@ rule convert_wig_to_bed:
 		szKmerCountBed
 	resources:
 		threads=4,
-		mem=15
+		mem=5
 	run:
 		szCommand = "module load bedops/2.4.41 && wig2bed --do-not-sort <{input} >{output}"
 		shell(szCommand)

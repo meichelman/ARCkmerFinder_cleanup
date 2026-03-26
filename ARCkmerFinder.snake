@@ -29,7 +29,7 @@ szKmerCountInWindows = f"{szAssemblyBasename}_in_{nWindowSize}_windows.bed"
 szZeroKmerCountWindows = "zero_windows.bed"
 szKmerCountInAllWindows = "counts_in_all_windows.bed"
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "windows_across_genome_with_zero_and_nonzero_matching_kmers.bed"
-szKmerBinaryMask = "kmer_binary_mask.txt"
+szKmerBinaryMask = "kmer_binary_mask_rle.txt"
 
 # Plotting
 szKmerCountInWindowsWithColor = f"{szAssemblyBasename}_in_{nWindowSize}_windows_with_color.bed"  

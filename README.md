@@ -25,20 +25,21 @@ The main output is windows_across_genome_with_zero_and_nonzero_matching_kmers.be
 4. K-mer count in the window
 
 Files created by ARCkmerFinder (automatic removal of intermediate files specified in config.yaml):
-1. Assembly.wig
-2. Assembly.bed
-3. Assembly.fai
-4. Assembly_{window_size}_windows.bed
-5. Assembly.bed_with_window
-6. Assembly_in_{window_size}_windows.bed
+1. {Assembly}.wig
+2. {Assembly}.bed
+3. {Assembly}.fai
+4. {Assembly}_{window_size}_windows.bed
+5. {Assembly}.bed_with_window
+6. {Assembly}_in_{window_size}_windows.bed
 7. windows_across_genome_with_zero_and_nonzero_matching_kmers.bed
+8. kmer_binary_mask_rle.txt
 
 Summary of the ARCkmerFinder pipeline:
 For each k-mer in the assembly the pipeline will check if it is found in the provided archaic k-mer database. The meryl-lookup function gives a .wig (1) file that is converted to a .bed file (2) in which each kmer is a single line. There are several other columns in the .bed file which are not used.
 
 A .fai file (3) is made for the assembly, and from this a set of non-overlapping windows that spans the assembly (4). Each window is 2kb by default (can be changed in config.yaml) except, of course, for the final window in each contig. Some fancy bedtools assigns each line in (2) to a window in (4) that gives a file (5) in which each kmer in the assembly has its location and which window it is in. Then, ARCkmerFinder counts how many such lines there are in each window.
 
-ARCkmerFinder combines the number of k-mers in each window (6). This file is sorted such that the contigs are listed in order which is the main output (7). From here, several scripts for plotting information regarding the k-mer counts in the windows across the entire assembly output some histograms and ideograms.
+ARCkmerFinder combines the number of k-mers in each window (6). This file is sorted such that the contigs are listed in order which is the main output (7). From here, several scripts for plotting information regarding the k-mer counts in the windows across the entire assembly output some histograms and ideograms. Additionally, a run length encoding of a binary mask of the assembly is created. Input sequence bases overlapping with k-mers that are found in the provided archaic k-mer database are masked as 1, and all other bases are masked as 0. The binary mask is run-length encoded and saved to a file (8).
 
 
 

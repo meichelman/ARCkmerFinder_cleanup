@@ -29,6 +29,7 @@ szKmerCountInWindows = f"{szAssemblyBasename}_in_{nWindowSize}_windows.bed"
 szZeroKmerCountWindows = "zero_windows.bed"
 szKmerCountInAllWindows = "counts_in_all_windows.bed"
 szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers = "windows_across_genome_with_zero_and_nonzero_matching_kmers.bed"
+szKmerBinaryMask = "kmer_binary_mask.txt"
 
 # Plotting
 szKmerCountInWindowsWithColor = f"{szAssemblyBasename}_in_{nWindowSize}_windows_with_color.bed"  
@@ -68,6 +69,7 @@ def is_directly_in_cwd(file_path):
 rule all:
 	input:
 		szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers,
+		szKmerBinaryEncoding,
 		szIdeogramFile,
 		szHistogramLogFile,
 		szHistogramFileLinearWithLimit,
@@ -200,6 +202,18 @@ rule figureOutWhichContigsToDisplay:
 
 
 # Generate final archaic k-mer counts bed file with the number of matching k-mers in each window (including zero and non-zero windows with matching k-mers)
+rule make_kmer_binary_mask_rle_encoding_file:
+	input:
+		szKmerCountBed
+	output:
+		szKmerBinaryEncoding
+	localrule: True
+	run:
+		szCommand = f"./bed2rle_mask.py {input} {szAssemblyFai} {output}"
+		print(szCommand)
+		shell(szCommand)
+
+
 rule make_archaic_kmer_counts_bed_file:
 	input:
 		szWindowsAcrossGenome,

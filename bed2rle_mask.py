@@ -71,7 +71,7 @@ def build_masks(bed_file, contig_lengths, fix_ends, kmer_size):
                 continue
 
             if fix_ends:
-                end = start + kmer_size - 1
+                end = start + kmer_size
 
             if contig not in masks:
                 if contig not in skipped_contigs:

@@ -2,7 +2,7 @@
 
 
 #SBATCH --time=24:00:00
-#SBATCH --mem=30g
+#SBATCH --mem=5g
 #SBATCH --cpus-per-task=1
 
 source /projects/standard/hsiehph/shared/bin/initialize_conda.sh

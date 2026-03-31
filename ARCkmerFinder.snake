@@ -210,7 +210,7 @@ rule make_kmer_binary_mask_rle_encoding_file:
 		szKmerBinaryMaskRLE
 	localrule: True
 	run:
-		szCommand = f"./bed2rle_mask.py {input} {szAssemblyFai} {output}"
+		szCommand = f"./bed2rle_mask.py {input[0]} {szAssemblyFai} {output}"
 		print(szCommand)
 		shell(szCommand)
 

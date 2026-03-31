@@ -96,17 +96,19 @@ def build_masks(bed_file, contig_lengths, fix_ends, kmer_size):
     return masks
 
 
-def masks_to_rle(masks, contig_lengths, output_file):
+def masks_to_rle(masks, chrom_lengths, output_file):
     total_runs = 0
     with open(output_file, 'w') as out:
-        for contig in sorted(masks, key=lambda c: (contig_lengths[c], c), reverse=True):
+        for chrom in chrom_lengths:  # preserves fai order
+            if chrom not in masks:
+                continue
             rle = [
                 (state, sum(1 for _ in group))
-                for state, group in groupby(masks[contig])
+                for state, group in groupby(masks[chrom])
             ]
             total_runs += len(rle)
             rle_str = '\t'.join(f"{state},{length}" for state, length in rle)
-            out.write(f"{contig}\t{rle_str}\n")
+            out.write(f"{chrom}\t{rle_str}\n")
     print(f"Wrote {total_runs} total RLE runs across {len(masks)} contigs", file=sys.stderr)
 
 

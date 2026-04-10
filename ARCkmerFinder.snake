@@ -303,8 +303,8 @@ rule make_meryl_lookup:
 	output:
 		szKmerCountWig
 	resources:
-		threads=4,
-		mem=24
+		threads=8,
+		mem=32
 	run:
 		szCommand = f"module load meryl/1.4.1 && meryl-lookup -wig-count -output {output} -sequence {szAssemblyPath} -mers {szMerylDatabase}"
 		print(szCommand)

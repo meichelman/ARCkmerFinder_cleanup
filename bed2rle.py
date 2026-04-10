@@ -56,7 +56,7 @@ def make_rle(count_file, output_file):
 def main():
     args = parse_args()
     
-    make_rle(args.bed_file, args.output_file)
+    make_rle(args.count_file, args.output_file)
 
 
 if __name__ == "__main__":

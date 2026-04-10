@@ -6,5 +6,6 @@ kmer_counting:
   remove_intermediate_files: True
 
 plotting:
+  make_plots: False
   top_%_ of_windows: 1.0
   contigs_to_display: 12

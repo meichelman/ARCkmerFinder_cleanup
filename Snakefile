@@ -11,6 +11,7 @@ nWindowSize = config["kmer_counting"]["window_size"]
 bRemoveIntermediateFiles = config["kmer_counting"]["remove_intermediate_files"]
 nTopNPercentOfWindows = config["plotting"]["top_%_ of_windows"]
 nContigsToDisplay = config["plotting"]["contigs_to_display"]
+bMakePlots = config["plotting"]["make_plots"]
 szAssemblyBasename = os.path.basename( szAssemblyPath )
 
 # Organizing windows
@@ -43,6 +44,20 @@ szHistogramFileLinearWithLimit = f"{szAssemblyBasename}_with_limit_histogram.png
 szHistogramLogTitle = f"{szAssemblyBasename}_logx"
 szHistogramLogFile  = f"{szHistogramLogTitle}_histogram.png"
 
+# Outputs
+if bMakePlots:
+	outputs = [
+		szKmerCountRLE,
+		szIdeogramFile,
+		szHistogramLogFile,
+		szHistogramFileLinearWithLimit,
+		szHistogramFile
+	]
+else:
+	outputs = [
+		szKmerCountRLE
+	]
+
 
 def is_directly_in_cwd(file_path):
 	"""
@@ -68,11 +83,7 @@ def is_directly_in_cwd(file_path):
 
 rule all:
 	input:
-		szKmerCountRLE,
-		szIdeogramFile,
-		szHistogramLogFile,
-		szHistogramFileLinearWithLimit,
-		szHistogramFile
+		outputs
 	localrule: True
 	run:
 		files_to_remove = [
@@ -97,7 +108,7 @@ rule all:
 		if bRemoveIntermediateFiles:
 			shell(szCommand)
 
-		szCommand = f"mkdir -p plotting/plots && mv *.png plotting/plots/"
+		szCommand = f"mkdir -p plots && mv *.png plots/"
 		shell(szCommand)
 
 
@@ -109,7 +120,7 @@ rule makeHistogram_logx:
 		szHistogramLogFile
 	localrule: True
 	run:
-		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_logx.R {output} {szHistogramLogTitle} {input}"
+		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript scripts/histogram_logx.R {output} {szHistogramLogTitle} {input}"
 		shell(szCommand)
 
 
@@ -121,10 +132,10 @@ rule makeHistogram_linear_with_limit:
 		szHistogramFileLinearWithLimit
 	localrule: True
 	run:
-		szCommand = f"./plotting/scripts/findTopNPerCentForHistogramLimit2.py --szInputFile {input} --nWhichColumn 4 --fTopNPerCent {nTopNPercentOfWindows} --szOutputFileContainingMax {fileLimitForHistogram}"
+		szCommand = f"./scripts/findTopNPerCentForHistogramLimit2.py --szInputFile {input} --nWhichColumn 4 --fTopNPerCent {nTopNPercentOfWindows} --szOutputFileContainingMax {fileLimitForHistogram}"
 		shell(szCommand)
 
-		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_with_limit.R {output} {szAssemblyBasename} {input} `cat {fileLimitForHistogram}` "
+		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript scripts/histogram_linear_with_limit.R {output} {szAssemblyBasename} {input} `cat {fileLimitForHistogram}` "
 		shell(szCommand)
 
 
@@ -136,7 +147,7 @@ rule makeHistogram_linear_no_limit:
 		szHistogramFile
 	localrule: True
 	run:
-		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/histogram_linear_no_limit.R {output} {szAssemblyBasename} {input}"
+		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript scripts/histogram_linear_no_limit.R {output} {szAssemblyBasename} {input}"
 		shell(szCommand)
 
 
@@ -152,7 +163,7 @@ rule makeIdeogram:
 		szIdeogramFile
 	localrule: True
 	run:
-		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript plotting/scripts/make_ideogram6_rectangles.R {output} {input[0]} {szAssemblyBasename} {input[1]} {input[2]} {input[3]} {input[4]}"
+		szCommand = f"module load R/4.4.0-openblas-rocky8 && Rscript scripts/make_ideogram6_rectangles.R {output} {input[0]} {szAssemblyBasename} {input[1]} {input[2]} {input[3]} {input[4]}"
 		shell(szCommand)
 
 
@@ -165,7 +176,7 @@ rule find_top_N_per_cent_bed:
 		szTopNPerCentKmerCountWindows
 	localrule: True
 	run:
-		szCommand = f"./plotting/scripts/makeBedFileWithTopNPerCent.py --fTopPercent {nTopNPercentOfWindows} --szInputBedFileWithNonZeroWindows {input[0]} --szBedFileOfAllWindows {input[1]} --szOutputBedFile {output}"
+		szCommand = f"./scripts/makeBedFileWithTopNPerCent.py --fTopPercent {nTopNPercentOfWindows} --szInputBedFileWithNonZeroWindows {input[0]} --szBedFileOfAllWindows {input[1]} --szOutputBedFile {output}"
 		shell(szCommand)
 
 
@@ -179,7 +190,7 @@ rule addColors:
 		szKmerCountInWindowsWithColor
 	localrule: True
 	run:
-		szCommand = f"cat {input[0]} | ./plotting/scripts/addColors3.py --szContigsToDisplayOnLeft {input[1]} --szContigsToDisplayOnRight {input[2]} >{output}"
+		szCommand = f"cat {input[0]} | ./scripts/addColors3.py --szContigsToDisplayOnLeft {input[1]} --szContigsToDisplayOnRight {input[2]} >{output}"
 		shell(szCommand)
 
 
@@ -192,7 +203,7 @@ rule figureOutWhichContigsToDisplay:
 		szFileOfContigsToDisplayOnRight
 	localrule: True
 	run:
-		szCommand = f"./plotting/scripts/figureOutWhichContigsToDisplay.sh {input} {nContigsToDisplay} {output[0]} {output[1]}"
+		szCommand = f"./scripts/figureOutWhichContigsToDisplay.sh {input} {nContigsToDisplay} {output[0]} {output[1]}"
 		shell(szCommand)
 
 
@@ -209,7 +220,7 @@ rule make_archaic_kmer_counts_rle_bed_file:
 		szKmerCountRLE
 	localrule: True
 	run:
-		szCommand = f"./bed2rle.py {input} {output}"
+		szCommand = f"./scripts/bed2rle.py {input} {output}"
 		print(szCommand)
 		shell(szCommand)
 

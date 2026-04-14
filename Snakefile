@@ -86,30 +86,45 @@ rule all:
 		outputs
 	localrule: True
 	run:
-		files_to_remove = [
-			szAssemblyFai,
-			szAssemblyBasename + '.gzi',
-			szAssemblyBed,
-			szWindowsAcrossGenome,
-			szKmerCountWig,
-			szKmerCountBed,
-			szKmerCountBedSortedFlag,
-			szKmerCountBedWithWindow,
-			szKmerCountInWindows,
-			szZeroKmerCountWindows,
-			szKmerCountInAllWindows,
-			szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers,
-			szKmerCountInWindowsWithColor,
-			szFileOfContigsToDisplayOnLeft,
-			szFileOfContigsToDisplayOnRight,
-			fileLimitForHistogram
-		]
-		szCommand = f"rm {' '.join(files_to_remove)}"
+		if bMakePlots:
+			files_to_remove = [
+				szAssemblyFai,
+				szAssemblyBasename + '.gzi',
+				szAssemblyBed,
+				szWindowsAcrossGenome,
+				szKmerCountWig,
+				szKmerCountBed,
+				szKmerCountBedSortedFlag,
+				szKmerCountBedWithWindow,
+				szKmerCountInWindows,
+				szZeroKmerCountWindows,
+				szKmerCountInAllWindows,
+				szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers,
+				szKmerCountInWindowsWithColor,
+				szFileOfContigsToDisplayOnLeft,
+				szFileOfContigsToDisplayOnRight,
+				fileLimitForHistogram
+			]
+			szCommand = f"mkdir -p plots && mv *.png plots/"
+			shell(szCommand)
+			szCommand = f"rm {' '.join(files_to_remove)}"
+		else:
+			files_to_remove = [
+				szAssemblyFai,
+				szAssemblyBasename + '.gzi',
+				szWindowsAcrossGenome,
+				szKmerCountWig,
+				szKmerCountBed,
+				szKmerCountBedSortedFlag,
+				szKmerCountBedWithWindow,
+				szKmerCountInWindows,
+				szZeroKmerCountWindows,
+				szKmerCountInAllWindows,
+				szWindowsAcrossGenomeWithZeroAndNonZeroMatchingKmers
+			]
+			szCommand = f"rm {' '.join(files_to_remove)}"
 		if bRemoveIntermediateFiles:
 			shell(szCommand)
-
-		szCommand = f"mkdir -p plots && mv *.png plots/"
-		shell(szCommand)
 
 
 # Make the histogram of k-mer counts with a log x-axis

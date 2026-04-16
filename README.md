@@ -15,6 +15,7 @@ git clone https://github.com/hsiehphLab/ARCkmerFinder.git .
 ## Initial configuration
 
 The required R libraries can be installed with install.packages({package_name}).
+
 Required R packages:
 - ggplot2
 - gridExtra
@@ -31,7 +32,7 @@ Required R packages:
 
 ## Running ARCkmerFinder
 
-1. Edit the assembly and existing meryl database paths lines in config.yaml.
+1. Edit the assembly and existing meryl database path lines in config.yaml.
     - You may also edit the other variables.
 2. Run `./sbatch_run_snakemake` to submit to the cluster, or run `./run_snakemake` to run locally.
 
@@ -103,11 +104,17 @@ Lastly, a run-length-encoding of k-mers is created (15).
 ## Configuration variables
 
 Assembly: the path to the assembly (.fasta, .fa., .fasta.gz, etc.).
+
 Existing meryl database path: the path to the k-mer database created with preARCkmerFinder.
+
 Window size: the size of the bins for counting the matching k-mers (default: 2000)
+
 Remove intermediate files: whether or not to remove the intermediate files (default: True)
+
 Make plots: whether or not to make the plots for additional information about the matching k-mers (default: False)
+
 Top percent of windows: the % of windows with the highest matching k-mer counts to plot (default: 1.0)
+
 Contigs to display: the number of contigs to display in the plots (default: 12)
 
 

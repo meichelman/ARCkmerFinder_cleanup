@@ -1,12 +1,21 @@
 # ARCkmerFinder
 
-To run the pipeline:
-1. `mkdir {new_directory} && cd {new_directory}`
-2. `git clone git@github.com:dgordon562/ARCkmerFinder.git .`
-3. Edit the assembly and existing meryl database paths lines in config.yaml
-4. Run `./sbatch_run_snakemake.sh`
+ARCkmerFinder is a pipeline that searches an assembly for k-mers matching those in a k-mer database.
+See [preARCkmerFinder](https://github.com/hsiehphLab/preARCkmerFinder) for details on creating the 
+k-mer database.
 
-Required R libraries:
+## Getting started
+
+To get setup do the following:
+```shell
+mkdir {new_directory} && cd {new_directory}
+git clone https://github.com/hsiehphLab/ARCkmerFinder.git .
+```
+
+## Initial configuration
+
+The required R libraries can be installed with install.packages({package_name}).
+Required R packages:
 - ggplot2
 - gridExtra
 - ggpubr
@@ -18,28 +27,88 @@ Required R libraries:
 - ggplotify
 - cowplot
 
-The main output is windows_across_genome_with_zero_and_nonzero_matching_kmers.bed and a number of plots. The file windows_across_genome_with_zero_and_nonzero_matching_kmers.bed has 4 columns:
+<!-- For users outside our lab we need to provide an environment.yaml and change the run_snakemake and sbatch_run_snakemake scripts -->
+
+## Running ARCkmerFinder
+
+1. Edit the assembly and existing meryl database paths lines in config.yaml.
+    - You may also edit the other variables.
+2. Run `./sbatch_run_snakemake` to submit to the cluster, or run `./run_snakemake` to run locally.
+
+## How it works
+
+ARCkmerFinder scans through the assembly looking at every k-mer and asks whether that k-mer is found
+in the provided k-mer database. The number of matching k-mers, that is k-mers found in both the assembly 
+and k-mer database are counted and binned into windows. The size of the windows can be changed in the 
+config.yaml file; however, the default and recommended size is 2000 (for 2000 base pairs, or 2kb). The 
+main output is kmer_counts_rle.bed. This files contains a run-length-encoding of the k-mers found in 
+every window across the assembly such that consecutive windows with a k-mer count of 0 are written into 
+a single line with the start position matching the start position of the first window in the run and the 
+end positions matching the end position of the last window in the run. Windows with 1 matching k-mer or 
+more are written into their own line. When ARCkmerFinder is run with a private (an outgroup has been 
+subtracted from the database) archaic k-mer database (Neanderthal or Denisovan) many of the windows are 
+expected to be zero. Thus, using a run-length-encoding minimizes the disk space required and improves IO 
+streaming for downstream analysis.
+
+The output file kmer_counts_rle.bed has 4 columns:
 1. Assembly contig
 2. Window start coordinate
 3. Window end coordinate
 4. K-mer count in the window
 
-Files created by ARCkmerFinder (automatic removal of intermediate files specified in config.yaml):
-1. {Assembly}.wig
+ARCkmerFinder generates several files in the process (intermediate files can be automatically removed 
+using a variable in config.yaml). These files have information on the assembly window boundaries, 
+the positions of matching k-mers, the number of matching k-mers in the windows, and more. Some of the 
+files are plots providing information on the location of k-mers in the contigs. The files are listed 
+below.
+1. {Assembly} (file is a link if the assembly is not in the current directory)
 2. {Assembly}.bed
-3. {Assembly}.fai
-4. {Assembly}_{window_size}_windows.bed
-5. {Assembly}.bed_with_window
-6. {Assembly}_in_{window_size}_windows.bed
-7. windows_across_genome_with_zero_and_nonzero_matching_kmers.bed
-8. kmer_binary_mask_rle.txt
+3. {Assembly}.bed_with_window
+4. {Assembly}.fai
+5. {Assembly}.gzi
+6. {Assembly}.wig
+7. {Assembly}.wig.bed
+8. {Assembly}.wig.bed.sorted_flag
+9. {Assembly}_{window_size}_windows.bed
+10. {Assembly}_in_{window_size}_windows.bed
+11. {Assembly}_in_{window_size}_windows_with_color.bed
+12. contigs_to_display_on_left.txt
+13. contigs_to_display_on_right.txt
+14. counts_in_all_windows.bed
+15. kmer_counts_rle.bed
+16. top_N_per_cent_kmer_windows.bed
+17. windows_across_genome_with_zero_and_nonzero_matching_kmers.bed
+18. x_limit_for_histogram.txt
+19. zero_windows.bed
+
+The only file that is kept when intermediate file removal is specified is kmer_counts_rle.bed (14).
 
 Summary of the ARCkmerFinder pipeline:
-For each k-mer in the assembly the pipeline will check if it is found in the provided archaic k-mer database. The meryl-lookup function gives a .wig (1) file that is converted to a .bed file (2) in which each kmer is a single line. There are several other columns in the .bed file which are not used.
+For each k-mer in the assembly the pipeline will check if it is found in the provided private archaic 
+k-mer database. This is done using the meryl-lookup function which gives a .wig (6) file that is 
+converted to a .bed file (7) in which each k-mer is a single line. There are several other columns 
+in the .bed file which are not used.
 
-A .fai file (3) is made for the assembly, and from this a set of non-overlapping windows that spans the assembly (4). Each window is 2kb by default (can be changed in config.yaml) except, of course, for the final window in each contig. Some fancy bedtools assigns each line in (2) to a window in (4) that gives a file (5) in which each kmer in the assembly has its location and which window it is in. Then, ARCkmerFinder counts how many such lines there are in each window.
+A .fai file (4 and 5) is made for the assembly, and from this a set of non-overlapping windows that spans 
+the assembly (9). Each window is 2kb by default (can be changed in config.yaml) except, of course, for 
+the final window in each contig. Some fancy bedtools assigns each line in (7) to a window in (9) that 
+gives a file (3) in which each kmer in the assembly has its location and which window it is in. Then, 
+ARCkmerFinder counts how many such lines there are in each window to make (10).
 
-ARCkmerFinder combines the number of k-mers in each window (6). This file is sorted such that the contigs are listed in order which is the main output (7). From here, several scripts for plotting information regarding the k-mer counts in the windows across the entire assembly output some histograms and ideograms. Additionally, a run length encoding of a binary mask of the assembly is created. Input sequence bases overlapping with k-mers that are found in the provided archaic k-mer database are masked as 1, and all other bases are masked as 0. The binary mask is run-length encoded and saved to a file (8).
+ARCkmerFinder fills in the gaps with windows containing a k-mer count of 0 (14). This file is sorted 
+such that the contigs are listed in order (17). From here, several scripts for plotting information 
+regarding the k-mer counts in the windows across the entire assembly output some histograms and ideograms. 
+Lastly, a run-length-encoding of k-mers is created (15).
+
+## Configuration variables
+
+Assembly: the path to the assembly (.fasta, .fa., .fasta.gz, etc.).
+Existing meryl database path: the path to the k-mer database created with preARCkmerFinder.
+Window size: the size of the bins for counting the matching k-mers (default: 2000)
+Remove intermediate files: whether or not to remove the intermediate files (default: True)
+Make plots: whether or not to make the plots for additional information about the matching k-mers (default: False)
+Top percent of windows: the % of windows with the highest matching k-mer counts to plot (default: 1.0)
+Contigs to display: the number of contigs to display in the plots (default: 12)
 
 
 

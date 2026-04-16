@@ -105,7 +105,7 @@ Lastly, a run-length-encoding of k-mers is created (15).
 
 Assembly: the path to the assembly (.fasta, .fa., .fasta.gz, etc.).
 
-Existing meryl database path: the path to the k-mer database created with preARCkmerFinder.
+Existing meryl database path: the path to the k-mer database created with [preARCkmerFinder](https://github.com/hsiehphLab/preARCkmerFinder).
 
 Window size: the size of the bins for counting the matching k-mers (default: 2000)
 

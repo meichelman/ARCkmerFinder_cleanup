@@ -7,5 +7,5 @@ kmer_counting:
 
 plotting:
   make_plots: False
-  top_%_ of_windows: 1.0
+  top_%_of_windows: 1.0
   contigs_to_display: 12
